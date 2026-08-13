@@ -44,9 +44,13 @@ try
 
     // Rule Engine (UC-08): reglas de denegación registradas por DI.
     builder.Services.AddScoped<IBlacklistedSsnQuery, BlacklistedSsnQuery>();
+    builder.Services.AddScoped<ICustomerQuery, CustomerQuery>();
     builder.Services.AddScoped<IDenialRule, StateNyRule>();
     builder.Services.AddScoped<IDenialRule, BlacklistedSsnRule>();
     builder.Services.AddScoped<RuleEngine>();
+
+    // Caso de uso (UC-11): persistencia transaccional.
+    builder.Services.AddScoped<Niuro.Core.Application.UseCases.SubmitLoanApplication>();
 
     var app = builder.Build();
 

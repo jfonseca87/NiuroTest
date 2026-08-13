@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 
 export default function ApprovedPage() {
+  const searchParams = useSearchParams();
+  const applicationId = searchParams.get("applicationId") ?? undefined;
+
   return (
     <div className="row justify-content-center">
       <div className="col-lg-6 col-md-8">
@@ -22,6 +26,12 @@ export default function ApprovedPage() {
               text="Congratulations! Your loan application has been approved."
               className="w-100 mb-4"
             />
+
+            {applicationId && (
+              <div className="alert alert-info mb-4">
+                <strong>Application ID:</strong> {applicationId}
+              </div>
+            )}
 
             <p className="text-muted">
               Your application has been processed successfully. You will receive

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Niuro.Core.Application.DTOs;
 using Niuro.Core.Application.Responses;
 using Niuro.Core.Application.Results;
+using Niuro.Core.Application.UseCases;
 using Niuro.Core.Domain.Rules;
 
 namespace Niuro.Api.Controllers;
@@ -13,15 +14,18 @@ public class LoanApplicationsController : ControllerBase
 {
     private readonly IValidator<LoanApplicationRequest> _validator;
     private readonly RuleEngine _ruleEngine;
+    private readonly SubmitLoanApplication _submitLoanApplication;
     private readonly ILogger<LoanApplicationsController> _logger;
 
     public LoanApplicationsController(
         IValidator<LoanApplicationRequest> validator,
         RuleEngine ruleEngine,
+        SubmitLoanApplication submitLoanApplication,
         ILogger<LoanApplicationsController> logger)
     {
         _validator = validator;
         _ruleEngine = ruleEngine;
+        _submitLoanApplication = submitLoanApplication;
         _logger = logger;
     }
 
@@ -48,19 +52,44 @@ public class LoanApplicationsController : ControllerBase
 
         // UC-08: evaluar con el rule engine.
         var candidate = LoanCandidate.FromRequest(request);
-        var result = await _ruleEngine.EvaluateAsync(candidate);
+        var ruleResult = await _ruleEngine.EvaluateAsync(candidate);
 
-        _logger.LogInformation(
-            "Loan application for {FirstName} {LastName}: {Status} ({Reason})",
-            request.FirstName, request.LastName,
-            result.IsSuccess ? "approved" : "denied",
-            result.Error ?? "none");
-
-        if (result.IsSuccess)
+        if (ruleResult.IsFailure)
         {
-            return Ok(LoanDecision.Approved());
+            _logger.LogInformation(
+                "Loan application for {FirstName} {LastName}: denied ({Reason})",
+                request.FirstName, request.LastName, ruleResult.Error);
+
+            return Ok(LoanDecision.Denied(ruleResult.Error!));
         }
 
-        return Ok(LoanDecision.Denied(result.Error!));
+        // UC-11: persistir customer + application + outbox (transaccional)
+        var submitResult = await _submitLoanApplication.ExecuteAsync(request);
+
+        if (submitResult.IsFailure)
+        {
+            // RETURNING_CUSTOMER es UC-12; por ahora denegamos
+            if (submitResult.Error == "RETURNING_CUSTOMER")
+            {
+                _logger.LogInformation(
+                    "Returning customer detected for SSN ending in {SsnSuffix}",
+                    request.Ssn[^4..]);
+                return Ok(LoanDecision.Denied("RETURNING_CUSTOMER"));
+            }
+
+            _logger.LogError("Failed to submit loan application: {Error}", submitResult.Error);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Status = 500,
+                Detail = "Failed to process the application. Please try again."
+            });
+        }
+
+        _logger.LogInformation(
+            "Loan application for {FirstName} {LastName}: approved (ApplicationId={ApplicationId})",
+            request.FirstName, request.LastName, submitResult.Value.Id);
+
+        return Ok(LoanDecision.Approved(submitResult.Value.Id.ToString()));
     }
 }

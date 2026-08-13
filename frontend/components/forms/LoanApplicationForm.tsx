@@ -96,7 +96,8 @@ export function LoanApplicationForm() {
 
   useEffect(() => {
     if (status === "success") {
-      router.push("/approved");
+      const applicationId = decision?.applicationId;
+      router.push(applicationId ? `/approved?applicationId=${encodeURIComponent(applicationId)}` : "/approved");
     } else if (status === "denied") {
       const reason = decision?.reason;
       router.push(reason ? `/denied?reason=${encodeURIComponent(reason)}` : "/denied");
