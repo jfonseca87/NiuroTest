@@ -20,6 +20,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- Validación de DTOs (UC-07). -->
+    <PackageReference Include="FluentValidation.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,6 +2,9 @@ using Serilog;
 using Niuro.Core.Infrastructure;
 using Niuro.Core.Infrastructure.Logging;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
+using Niuro.Core.Application.DTOs;
+using Niuro.Core.Application.Validators;
 
 // Logging de arranque: el API es un entry point con derechos de logging (el mock no loguea aquí).
 // El worker compartirá el mismo archivo rolling; la property "Service" diferencia qué proceso escribió.
@@ -27,6 +30,10 @@ try
     builder.Services.AddControllers();
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
+
+    // Validación con FluentValidation (UC-07).
+    builder.Services.AddScoped<IValidator<LoanApplicationRequest>, LoanApplicationRequestValidator>();
+    builder.Services.AddValidatorsFromAssemblyContaining<LoanApplicationRequestValidator>();
 
     // Persistencia: PostgreSQL vía user secrets (ConnectionStrings:Postgres), nunca en appsettings commiteado.
     builder.Services.AddDbContext<NiuroDbContext>(options =>

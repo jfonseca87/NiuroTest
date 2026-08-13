@@ -32,5 +32,8 @@
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
     <!-- Pin transitivo: Testcontainers arrastra SSH.NET 2025.1.0 (vulnerable, NU1903/GHSA-q939-rpr3-3284). Fijado a 2026.0.0. -->
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
+    <!-- Validación de DTOs con FluentValidation (UC-07). -->
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.1" />
   </ItemGroup>
 </Project>
