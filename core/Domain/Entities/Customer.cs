@@ -1,3 +1,5 @@
+using Niuro.Core.Application.DTOs;
+
 namespace Niuro.Core.Domain.Entities;
 
 /// <summary>
@@ -13,4 +15,20 @@ public class Customer
     public Address Address { get; set; } = null!;
     public string CompanyName { get; set; } = string.Empty;
     public LoanApplication? Application { get; set; }
+
+    /// <summary>
+    /// Actualiza los datos del cliente con los de una nueva solicitud (UC-12).
+    /// El SSN no cambia (es la clave de negocio).
+    /// </summary>
+    public void UpdateFromRequest(LoanApplicationRequest request)
+    {
+        FirstName = request.FirstName;
+        LastName = request.LastName;
+        CompanyName = request.CompanyName;
+        Address = new Address(
+            request.Address.Street,
+            request.Address.City,
+            request.Address.State.ToUpperInvariant(),
+            request.Address.ZipCode);
+    }
 }

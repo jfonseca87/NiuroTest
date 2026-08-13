@@ -13,7 +13,7 @@ namespace Niuro.Core.Application.UseCases;
 /// 1. Normaliza SSN
 /// 2. Busca customer por SSN
 /// 3. Si no existe → crea Customer + Application + OutboxEvent (Create)
-/// 4. Si existe → delega a UpdateLoanApplication (UC-12)
+/// 4. Si existe → actualiza Customer + Application + OutboxEvent (Update)
 /// 5. Todo en una transacción (SaveChanges atómico)
 /// </summary>
 public sealed class SubmitLoanApplication
@@ -49,13 +49,24 @@ public sealed class SubmitLoanApplication
 
         // 3. Buscar customer existente
         var existingCustomer = await _customerQuery.GetBySsnAsync(normalizedSsn, ct);
-        if (existingCustomer is not null)
+        var isReturningCustomer = existingCustomer is not null;
+
+        if (isReturningCustomer)
         {
-            // Customer existente → UC-12
-            return Result.Failure<LoanApplication>("RETURNING_CUSTOMER");
+            // UC-12: Customer existente → actualizar
+            return await HandleReturningCustomerAsync(existingCustomer!, request, ct);
         }
 
-        // 4. Crear nuevo customer
+        // UC-11: Customer nuevo → crear
+        return await HandleNewCustomerAsync(normalizedSsn, request, ct);
+    }
+
+    private async Task<Result<LoanApplication>> HandleNewCustomerAsync(
+        string normalizedSsn,
+        LoanApplicationRequest request,
+        CancellationToken ct)
+    {
+        // Crear nuevo customer
         var customer = new Customer
         {
             Id = Guid.NewGuid(),
@@ -70,7 +81,7 @@ public sealed class SubmitLoanApplication
                 request.Address.ZipCode)
         };
 
-        // 5. Crear application
+        // Crear application
         var application = new LoanApplication
         {
             Id = Guid.NewGuid(),
@@ -79,10 +90,65 @@ public sealed class SubmitLoanApplication
         };
         customer.Application = application;
 
-        // 6. Crear evento outbox (UC-13)
-        var outboxPayload = new
+        // Crear evento outbox (Create)
+        var outboxPayload = CreateOutboxPayload("Create", customer, application);
+        var outboxEvent = new OutboxEvent
         {
-            Operation = "Create",
+            Id = Guid.NewGuid(),
+            Operation = OutboxOperation.Create,
+            Status = OutboxStatus.Pending,
+            Payload = JsonSerializer.Serialize(outboxPayload),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Persistir todo en una transacción
+        _dbContext.Customers.Add(customer);
+        _dbContext.Applications.Add(application);
+        _dbContext.OutboxEvents.Add(outboxEvent);
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        return application;
+    }
+
+    private async Task<Result<LoanApplication>> HandleReturningCustomerAsync(
+        Customer customer,
+        LoanApplicationRequest request,
+        CancellationToken ct)
+    {
+        // UC-12: Actualizar customer existente con nuevos datos
+        customer.UpdateFromRequest(request);
+
+        // Actualizar application existente (nuevo monto)
+        var application = customer.Application!;
+        application.RequestedAmount = request.RequestedAmount;
+
+        // Crear evento outbox (Update)
+        var outboxPayload = CreateOutboxPayload("Update", customer, application);
+        var outboxEvent = new OutboxEvent
+        {
+            Id = Guid.NewGuid(),
+            Operation = OutboxOperation.Update,
+            Status = OutboxStatus.Pending,
+            Payload = JsonSerializer.Serialize(outboxPayload),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Persistir en transacción
+        _dbContext.Customers.Update(customer);
+        _dbContext.Applications.Update(application);
+        _dbContext.OutboxEvents.Add(outboxEvent);
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        return application;
+    }
+
+    private static object CreateOutboxPayload(string operation, Customer customer, LoanApplication application)
+    {
+        return new
+        {
+            Operation = operation,
             Customer = new
             {
                 customer.Ssn,
@@ -103,23 +169,5 @@ public sealed class SubmitLoanApplication
                 application.RequestedAmount
             }
         };
-
-        var outboxEvent = new OutboxEvent
-        {
-            Id = Guid.NewGuid(),
-            Operation = OutboxOperation.Create,
-            Status = OutboxStatus.Pending,
-            Payload = JsonSerializer.Serialize(outboxPayload),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        // 7. Persistir todo en una transacción
-        _dbContext.Customers.Add(customer);
-        _dbContext.Applications.Add(application);
-        _dbContext.OutboxEvents.Add(outboxEvent);
-
-        await _dbContext.SaveChangesAsync(ct);
-
-        return application;
     }
 }

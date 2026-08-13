@@ -63,20 +63,11 @@ public class LoanApplicationsController : ControllerBase
             return Ok(LoanDecision.Denied(ruleResult.Error!));
         }
 
-        // UC-11: persistir customer + application + outbox (transaccional)
+        // UC-11/12: persistir customer + application + outbox (transaccional)
         var submitResult = await _submitLoanApplication.ExecuteAsync(request);
 
         if (submitResult.IsFailure)
         {
-            // RETURNING_CUSTOMER es UC-12; por ahora denegamos
-            if (submitResult.Error == "RETURNING_CUSTOMER")
-            {
-                _logger.LogInformation(
-                    "Returning customer detected for SSN ending in {SsnSuffix}",
-                    request.Ssn[^4..]);
-                return Ok(LoanDecision.Denied("RETURNING_CUSTOMER"));
-            }
-
             _logger.LogError("Failed to submit loan application: {Error}", submitResult.Error);
             return StatusCode(500, new ProblemDetails
             {
