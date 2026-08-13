@@ -1,0 +1,13 @@
+# Normaliza finales de línea (LF en el repo, checkout libre por OS)
+* text=auto
+
+# Binarios y fuentes específicas
+*.ico binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.svg text
+
+# Archivos de línea/commando
+*.sh text eol=lf
+*.ps1 text eol=crlf

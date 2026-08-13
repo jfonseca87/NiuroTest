@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Permite fijar la versión de paquetes transitivos vulnerables (NU1903). -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <!--
+    Versiones centrales de paquetes NuGet (Central Package Management).
+    Cada UC agrega aquí el <PackageVersion> del paquete que instale;
+    los proyectos SOLO referencian el paquete por id, sin versión.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+    <!-- Pin transitivo: Microsoft.AspNetCore.OpenApi 10.0.10 arrastra Microsoft.OpenApi 2.0.0 (vulnerable, NU1903/GHSA-v5pm-xwqc-g5wc). Fijado a la versión parcheada 2.7.5. -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
+    <!-- Pin transitivo: Testcontainers arrastra SSH.NET 2025.1.0 (vulnerable, NU1903/GHSA-q939-rpr3-3284). Fijado a 2026.0.0. -->
+    <PackageVersion Include="SSH.NET" Version="2026.0.0" />
+  </ItemGroup>
+</Project>

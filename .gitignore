@@ -1,0 +1,32 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Logs compartidos (ruta usada por Niuro.Api y Niuro.Worker)
+logs/
+
+# Frontend
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.next-env.d.ts
+
+# Env (el repo versiona .env.example, nunca .env.local)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Tooling del asistente (no es parte de la solución)
+.opencode/
+
+# Tooling del asistente inyectado por la CLI de Next.js en el scaffold del frontend
+frontend/AGENTS.md
+frontend/CLAUDE.md

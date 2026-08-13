@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/Niuro.Api.csproj" />
+  </Folder>
+  <Folder Name="/core/">
+    <Project Path="core/Niuro.Core.csproj" />
+  </Folder>
+  <Folder Name="/mock/">
+    <Project Path="mock/Niuro.Mock.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Niuro.Tests.csproj" />
+  </Folder>
+  <Folder Name="/worker/">
+    <Project Path="worker/Niuro.Worker.csproj" />
+  </Folder>
+</Solution>

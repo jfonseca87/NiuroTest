@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Niuro.Worker-b829666c-fc2b-4b7d-94b2-cf4a1267eef4</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Con Central Package Management las versiones viven en Directory.Packages.props -->
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\core\Niuro.Core.csproj" />
+  </ItemGroup>
+</Project>
