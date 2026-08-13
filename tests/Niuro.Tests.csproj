@@ -15,6 +15,9 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <!-- Provider EF Core: los tests de integración usan el DbContext contra PostgreSQL (Testcontainers);
+         referencia directa para unificar la versión de EF Core con core/. -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,6 +12,9 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.File" />
+    <!-- Provider EF Core: el worker procesa el outbox con el DbContext; referencia directa para
+         unificar la versión de EF Core con core/ (vía ProjectReference se resolvía a la mínima). -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
 
   <ItemGroup>
