@@ -10,6 +10,7 @@
   <ItemGroup>
     <!-- Con Central Package Management las versiones viven en Directory.Packages.props -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.File" />
     <!-- Provider EF Core: el worker procesa el outbox con el DbContext; referencia directa para
