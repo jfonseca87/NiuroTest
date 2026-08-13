@@ -27,6 +27,9 @@ out/
 # Tooling del asistente (no es parte de la solución)
 .opencode/
 
+# Documentación (no es parte de la solución)
+docs/
+
 # Tooling del asistente inyectado por la CLI de Next.js en el scaffold del frontend
 frontend/AGENTS.md
 frontend/CLAUDE.md
