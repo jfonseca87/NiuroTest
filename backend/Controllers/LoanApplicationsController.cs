@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Niuro.Core.Application.DTOs;
 using Niuro.Core.Application.Responses;
 using Niuro.Core.Application.Results;
+using Niuro.Core.Domain.Rules;
 
 namespace Niuro.Api.Controllers;
 
@@ -11,13 +12,16 @@ namespace Niuro.Api.Controllers;
 public class LoanApplicationsController : ControllerBase
 {
     private readonly IValidator<LoanApplicationRequest> _validator;
+    private readonly RuleEngine _ruleEngine;
     private readonly ILogger<LoanApplicationsController> _logger;
 
     public LoanApplicationsController(
         IValidator<LoanApplicationRequest> validator,
+        RuleEngine ruleEngine,
         ILogger<LoanApplicationsController> logger)
     {
         _validator = validator;
+        _ruleEngine = ruleEngine;
         _logger = logger;
     }
 
@@ -42,10 +46,21 @@ public class LoanApplicationsController : ControllerBase
             });
         }
 
-        // UC-08 (rule engine) se integra aquí.
-        // Por ahora retornamos approved; el rule engine implementará las reglas de denegación.
-        _logger.LogInformation("Loan application received for {FirstName} {LastName}", request.FirstName, request.LastName);
+        // UC-08: evaluar con el rule engine.
+        var candidate = LoanCandidate.FromRequest(request);
+        var result = await _ruleEngine.EvaluateAsync(candidate);
 
-        return Ok(LoanDecision.Approved());
+        _logger.LogInformation(
+            "Loan application for {FirstName} {LastName}: {Status} ({Reason})",
+            request.FirstName, request.LastName,
+            result.IsSuccess ? "approved" : "denied",
+            result.Error ?? "none");
+
+        if (result.IsSuccess)
+        {
+            return Ok(LoanDecision.Approved());
+        }
+
+        return Ok(LoanDecision.Denied(result.Error!));
     }
 }

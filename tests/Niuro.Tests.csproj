@@ -18,6 +18,8 @@
     <!-- Provider EF Core: los tests de integración usan el DbContext contra PostgreSQL (Testcontainers);
          referencia directa para unificar la versión de EF Core con core/. -->
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <!-- Mocking para tests (UC-08). -->
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>

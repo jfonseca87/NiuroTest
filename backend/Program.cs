@@ -1,10 +1,13 @@
 using Serilog;
 using Niuro.Core.Infrastructure;
 using Niuro.Core.Infrastructure.Logging;
+using Niuro.Core.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using Niuro.Core.Application.DTOs;
 using Niuro.Core.Application.Validators;
+using Niuro.Core.Domain.Rules;
+using Niuro.Core.Domain.Queries;
 
 // Logging de arranque: el API es un entry point con derechos de logging (el mock no loguea aquí).
 // El worker compartirá el mismo archivo rolling; la property "Service" diferencia qué proceso escribió.
@@ -38,6 +41,12 @@ try
     // Persistencia: PostgreSQL vía user secrets (ConnectionStrings:Postgres), nunca en appsettings commiteado.
     builder.Services.AddDbContext<NiuroDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+
+    // Rule Engine (UC-08): reglas de denegación registradas por DI.
+    builder.Services.AddScoped<IBlacklistedSsnQuery, BlacklistedSsnQuery>();
+    builder.Services.AddScoped<IDenialRule, StateNyRule>();
+    builder.Services.AddScoped<IDenialRule, BlacklistedSsnRule>();
+    builder.Services.AddScoped<RuleEngine>();
 
     var app = builder.Build();
 
