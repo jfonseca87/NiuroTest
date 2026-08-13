@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
+import { getDenialMessage } from "@/lib/messages";
 
 export default function DeniedPage() {
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason") ?? undefined;
+  const friendlyMessage = getDenialMessage(reason);
+
   return (
     <div className="row justify-content-center">
       <div className="col-lg-6 col-md-8">
@@ -19,7 +25,7 @@ export default function DeniedPage() {
 
             <Message
               severity="error"
-              text="We regret to inform you that your loan application has been denied."
+              text={friendlyMessage}
               className="w-100 mb-4"
             />
 

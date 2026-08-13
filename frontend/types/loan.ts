@@ -33,6 +33,7 @@ export interface UseLoanApplicationReturn {
   status: LoanApplicationStatus;
   error: string | null;
   validationErrors: ValidationError[];
+  decision: LoanDecision | null;
   submit: (data: LoanApplicationRequest) => Promise<void>;
   reset: () => void;
 }

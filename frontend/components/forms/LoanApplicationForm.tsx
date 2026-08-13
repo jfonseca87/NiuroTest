@@ -91,16 +91,17 @@ const initialFormData: FormData = {
 
 export function LoanApplicationForm() {
   const router = useRouter();
-  const { status, error, validationErrors, submit, reset } = useLoanApplication();
+  const { status, error, validationErrors, decision, submit, reset } = useLoanApplication();
   const [formData, setFormData] = useState<FormData>(initialFormData);
 
   useEffect(() => {
     if (status === "success") {
       router.push("/approved");
     } else if (status === "denied") {
-      router.push("/denied");
+      const reason = decision?.reason;
+      router.push(reason ? `/denied?reason=${encodeURIComponent(reason)}` : "/denied");
     }
-  }, [status, router]);
+  }, [status, decision, router]);
 
   const handleFieldChange = (field: keyof FormData, value: string | number | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

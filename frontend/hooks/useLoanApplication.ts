@@ -152,6 +152,7 @@ export function useLoanApplication(): UseLoanApplicationReturn {
     validationErrors,
     submit,
     reset,
+    decision,
   };
 }
 
