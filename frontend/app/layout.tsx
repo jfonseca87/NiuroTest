@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ConfigProvider } from "@/lib/config";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 // Orden de estilos: theme de PrimeReact (estética Bootstrap) → core → iconos → Bootstrap → overrides propios
 import "primereact/resources/themes/bootstrap4-dark-blue/theme.css";
@@ -17,7 +18,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body>
-        <ConfigProvider>{children}</ConfigProvider>
+        <ConfigProvider>
+          <AppLayout>{children}</AppLayout>
+        </ConfigProvider>
       </body>
     </html>
   );

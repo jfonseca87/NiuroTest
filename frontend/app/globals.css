@@ -1,3 +1,11 @@
+/* Brand Colors - NiuroTest */
+:root {
+  --brand-primary: #1a1a2e;
+  --brand-secondary: #16213e;
+  --brand-accent: #0f3460;
+  --brand-highlight: #e94560;
+}
+
 html {
   height: 100%;
 }
@@ -7,4 +15,32 @@ body {
   background: var(--surface-ground, #f8f9fa);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Layout utilities */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Override PrimeReact menubar for dark theme consistency */
+.navbar .p-menubar {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.navbar .p-menubar .p-menuitem-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.navbar .p-menubar .p-menuitem-link:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Card styling for forms */
+.card-elevated {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
 }
