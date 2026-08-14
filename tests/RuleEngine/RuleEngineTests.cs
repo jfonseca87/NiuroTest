@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Niuro.Core.Domain.Queries;
 using Niuro.Core.Domain.Rules;
@@ -182,6 +183,46 @@ public class OpenClosedPrincipleTests
         var resultFake = await engine.EvaluateAsync(candidateFake);
         Assert.True(resultFake.IsFailure);
         Assert.Equal("FAKE_REASON", resultFake.Error);
+    }
+}
+
+public class RuleEngineDiTests
+{
+    /// <summary>
+    /// Valida el wiring real del Rule Engine: replica el registro de Program.cs y
+    /// comprueba que el DI inyecta AMBAS reglas (en orden) vía IEnumerable<IDenialRule>.
+    /// </summary>
+    [Fact]
+    public async Task RuleEngine_LoadsAllRegisteredRulesFromDi_InRegistrationOrder()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped<IBlacklistedSsnQuery, StubBlacklistedSsnQuery>();
+        services.AddScoped<IDenialRule, StateNyRule>();
+        services.AddScoped<IDenialRule, BlacklistedSsnRule>();
+        services.AddScoped<CoreRuleEngine>();
+
+        await using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var engine = scope.ServiceProvider.GetRequiredService<CoreRuleEngine>();
+
+        // Estado NY + SSN en blacklist: gana StateNyRule (registrada primero).
+        var nyResult = await engine.EvaluateAsync(new LoanCandidate { Ssn = "123-45-6789", State = "NY" });
+        Assert.Equal("STATE_NY", nyResult.Error);
+
+        // Estado CA + SSN en blacklist: ya no aplica StateNyRule, aplica BlacklistedSsnRule.
+        var ssnResult = await engine.EvaluateAsync(new LoanCandidate { Ssn = "123-45-6789", State = "CA" });
+        Assert.Equal("SSN_BLACKLISTED", ssnResult.Error);
+    }
+
+    /// <summary>
+    /// Stub que siempre responde que el SSN está en blacklist, para poder resolver
+    /// BlacklistedSsnRule desde el contenedor sin tocar PostgreSQL.
+    /// </summary>
+    private sealed class StubBlacklistedSsnQuery : IBlacklistedSsnQuery
+    {
+        public Task<bool> IsBlacklistedAsync(string ssn, CancellationToken ct = default)
+            => Task.FromResult(true);
     }
 }
 
