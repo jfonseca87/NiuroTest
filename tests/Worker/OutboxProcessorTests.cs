@@ -41,7 +41,7 @@ public class OutboxProcessorTests : IAsyncLifetime
                 {
                     BaseAddress = new Uri("https://mock.test")
                 }))
-            .AddScoped<OutboxProcessor>()
+            .AddSingleton<OutboxProcessor>()
             .BuildServiceProvider();
 
         // Schema sufficient for the outbox (does not require the blacklist seed migrations).
