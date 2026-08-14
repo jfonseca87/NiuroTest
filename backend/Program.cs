@@ -95,3 +95,8 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
+
+/// <summary>
+/// Marcador público para que WebApplicationFactory pueda arrancar la app en los tests de integración.
+/// </summary>
+public partial class Program { }

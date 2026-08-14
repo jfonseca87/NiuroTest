@@ -9,7 +9,7 @@ using Niuro.Core.Domain.Rules;
 namespace Niuro.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/loan-applications")]
 public class LoanApplicationsController : ControllerBase
 {
     private readonly IValidator<LoanApplicationRequest> _validator;
