@@ -19,6 +19,13 @@ namespace Niuro.Core.Application.UseCases;
 /// </summary>
 public sealed class SubmitLoanApplication : ISubmitLoanApplication
 {
+    // El payload del outbox se serializa en snake_case, consistente con el OutboxProcessor
+    // (que extrae customer.ssn) y con el contrato del servicio externo (UC-13).
+    private static readonly JsonSerializerOptions OutboxJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+    };
+
     private readonly NiuroDbContext _dbContext;
     private readonly ICustomerQuery _customerQuery;
     private readonly IRuleEngine _ruleEngine;
@@ -102,7 +109,7 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
                 Id = Guid.NewGuid(),
                 Operation = OutboxOperation.Create,
                 Status = OutboxStatus.Pending,
-                Payload = JsonSerializer.Serialize(outboxPayload),
+                Payload = JsonSerializer.Serialize(outboxPayload, OutboxJsonOptions),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -160,7 +167,7 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
                 Id = Guid.NewGuid(),
                 Operation = OutboxOperation.Update,
                 Status = OutboxStatus.Pending,
-                Payload = JsonSerializer.Serialize(outboxPayload),
+                Payload = JsonSerializer.Serialize(outboxPayload, OutboxJsonOptions),
                 CreatedAt = DateTime.UtcNow
             };
 

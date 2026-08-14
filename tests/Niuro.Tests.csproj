@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\backend\Niuro.Api.csproj" />
     <ProjectReference Include="..\core\Niuro.Core.csproj" />
+    <ProjectReference Include="..\worker\Niuro.Worker.csproj" />
   </ItemGroup>
 
 </Project>

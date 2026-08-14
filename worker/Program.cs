@@ -35,7 +35,10 @@ try
         client.Timeout = TimeSpan.FromSeconds(30);
     });
 
-    // Worker que procesa el outbox - UC-13
+    // Procesador del outbox (lógica testable) - UC-13
+    builder.Services.AddScoped<OutboxProcessor>();
+
+    // Worker que procesa el outbox en background - UC-13
     builder.Services.AddHostedService<OutboxWorker>();
 
     var host = builder.Build();
