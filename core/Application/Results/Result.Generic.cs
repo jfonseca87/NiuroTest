@@ -11,7 +11,7 @@ public class Result<T> : Result
 
     public T Value => IsSuccess
         ? _value!
-        : throw new InvalidOperationException("No se puede obtener valor de resultado fallido.");
+        : throw new InvalidOperationException("The value of a failed result cannot be accessed.");
 
     public new string? Error => base.Error;
 
