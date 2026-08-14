@@ -8,21 +8,12 @@ namespace Niuro.Core.Infrastructure;
 /// Todas las escrituras transaccionales (Customer + Application + OutboxEvent) se commitean
 /// con un solo SaveChanges (UC-11/12).
 /// </summary>
-public class NiuroDbContext : DbContext
+public class NiuroDbContext(DbContextOptions<NiuroDbContext> options) : DbContext(options)
 {
-    
-
-    
-
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<LoanApplication> Applications => Set<LoanApplication>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
     public DbSet<BlacklistedSsn> BlacklistedSsns => Set<BlacklistedSsn>();
-
-    public NiuroDbContext(DbContextOptions<NiuroDbContext> options) : base(options)
-    {
-        Database.Migrate();
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

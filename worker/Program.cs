@@ -31,7 +31,7 @@ try
     // HTTP Client para el servicio externo (mock) - UC-13
     builder.Services.AddHttpClient<MockExternalClient>(client =>
     {
-        client.BaseAddress = new Uri(builder.Configuration["ExternalService:BaseUrl"] ?? "http://localhost:5200");
+        client.BaseAddress = new Uri(builder.Configuration["ExternalService:BaseUrl"] ?? "https://localhost:7124");
         client.Timeout = TimeSpan.FromSeconds(30);
     });
 
