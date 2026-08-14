@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { InputText } from "primereact/inputtext";
 import { InputMask } from "primereact/inputmask";
@@ -8,9 +8,8 @@ import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
-import { ProgressBar } from "primereact/progressbar";
 import { useLoanApplication, getFieldError } from "@/hooks/useLoanApplication";
-import type { LoanApplicationRequest, ValidationError } from "@/types/loan";
+import type { LoanApplicationRequest } from "@/types/loan";
 
 const US_STATES = [
   { label: "Alabama", value: "AL" },
@@ -65,6 +64,13 @@ const US_STATES = [
   { label: "Wyoming", value: "WY" },
 ];
 
+const SECTIONS = [
+  { label: "Personal", icon: "pi pi-user" },
+  { label: "Address", icon: "pi pi-map-marker" },
+  { label: "Employment", icon: "pi pi-briefcase" },
+  { label: "SSN", icon: "pi pi-shield" },
+];
+
 interface FormData {
   firstName: string;
   lastName: string;
@@ -88,6 +94,16 @@ const initialFormData: FormData = {
   requestedAmount: null,
   ssn: "",
 };
+
+/** Wraps a field control with a leading icon and consistent spacing. */
+function FieldIcon({ icon, children }: { icon: string; children: ReactNode }) {
+  return (
+    <div className="field-icon">
+      <i className={`pi ${icon} field-icon-badge`} aria-hidden="true"></i>
+      {children}
+    </div>
+  );
+}
 
 export function LoanApplicationForm() {
   const router = useRouter();
@@ -113,9 +129,7 @@ export function LoanApplicationForm() {
   const renderFieldError = (field: string) => {
     const errorMsg = getError(field);
     if (!errorMsg) return null;
-    return (
-      <small className="text-danger d-block mt-1">{errorMsg}</small>
-    );
+    return <small className="text-danger d-block mt-1">{errorMsg}</small>;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -146,167 +160,214 @@ export function LoanApplicationForm() {
   const isLoading = status === "loading";
 
   return (
-    <div className="card">
-      <div className="card-header bg-primary text-white">
-        <h4 className="mb-0">Loan Application</h4>
+    <div className="card-modern p-4 p-md-5">
+      <div className="d-flex align-items-center gap-3 mb-4">
+        <span className="icon-badge">
+          <i className="pi pi-file-edit"></i>
+        </span>
+        <div>
+          <h2 className="mb-1 fs-3">Loan Application</h2>
+          <p className="text-muted mb-0">It only takes a few minutes.</p>
+        </div>
       </div>
-      <div className="card-body">
-        {status === "error" && error && !validationErrors.length && (
-          <Message severity="error" text={error} className="mb-4 w-100" />
-        )}
 
-        <form onSubmit={handleSubmit}>
-          {/* Personal Information */}
-          <h6 className="text-muted mb-3">Personal Information</h6>
-          <div className="row g-3 mb-4">
+      <div className="section-chips mb-4" role="list" aria-label="Form sections">
+        {SECTIONS.map((s) => (
+          <span key={s.label} className="section-chip section-chip-active" role="listitem">
+            <i className={s.icon}></i>
+            {s.label}
+          </span>
+        ))}
+      </div>
+
+      {status === "error" && error && !validationErrors.length && (
+        <Message severity="error" text={error} className="mb-4 w-100" />
+      )}
+
+      <form onSubmit={handleSubmit} noValidate>
+        {/* Personal Information */}
+        <div className="mb-4">
+          <div className="row g-3">
             <div className="col-md-6">
               <label htmlFor="firstName" className="form-label">First Name</label>
-              <InputText
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => handleFieldChange("firstName", e.target.value)}
-                className={`w-100 ${getError("firstName") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-user">
+                <InputText
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => handleFieldChange("firstName", e.target.value)}
+                  className={`w-100 ${getError("firstName") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("firstName")}
+                />
+              </FieldIcon>
               {renderFieldError("firstName")}
             </div>
             <div className="col-md-6">
               <label htmlFor="lastName" className="form-label">Last Name</label>
-              <InputText
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => handleFieldChange("lastName", e.target.value)}
-                className={`w-100 ${getError("lastName") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-user">
+                <InputText
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => handleFieldChange("lastName", e.target.value)}
+                  className={`w-100 ${getError("lastName") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("lastName")}
+                />
+              </FieldIcon>
               {renderFieldError("lastName")}
             </div>
           </div>
+        </div>
 
-          {/* Address */}
-          <h6 className="text-muted mb-3">Address</h6>
-          <div className="row g-3 mb-4">
+        {/* Address */}
+        <div className="mb-4">
+          <div className="row g-3">
             <div className="col-12">
               <label htmlFor="street" className="form-label">Street</label>
-              <InputText
-                id="street"
-                value={formData.street}
-                onChange={(e) => handleFieldChange("street", e.target.value)}
-                className={`w-100 ${getError("address.street") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-home">
+                <InputText
+                  id="street"
+                  value={formData.street}
+                  onChange={(e) => handleFieldChange("street", e.target.value)}
+                  className={`w-100 ${getError("address.street") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("address.street")}
+                />
+              </FieldIcon>
               {renderFieldError("address.street")}
             </div>
             <div className="col-md-6">
               <label htmlFor="city" className="form-label">City</label>
-              <InputText
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleFieldChange("city", e.target.value)}
-                className={`w-100 ${getError("address.city") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-building">
+                <InputText
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => handleFieldChange("city", e.target.value)}
+                  className={`w-100 ${getError("address.city") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("address.city")}
+                />
+              </FieldIcon>
               {renderFieldError("address.city")}
             </div>
             <div className="col-md-3">
               <label htmlFor="state" className="form-label">State</label>
-              <Dropdown
-                id="state"
-                value={formData.state}
-                options={US_STATES}
-                onChange={(e) => handleFieldChange("state", e.value)}
-                placeholder="Select"
-                className={`w-100 ${getError("address.state") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-map-marker">
+                <Dropdown
+                  id="state"
+                  value={formData.state}
+                  options={US_STATES}
+                  onChange={(e) => handleFieldChange("state", e.value)}
+                  placeholder="Select"
+                  className={`w-100 ${getError("address.state") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("address.state")}
+                />
+              </FieldIcon>
               {renderFieldError("address.state")}
             </div>
             <div className="col-md-3">
               <label htmlFor="zipCode" className="form-label">Zip Code</label>
-              <InputText
-                id="zipCode"
-                value={formData.zipCode}
-                onChange={(e) => handleFieldChange("zipCode", e.target.value)}
-                className={`w-100 ${getError("address.zipCode") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-hashtag">
+                <InputText
+                  id="zipCode"
+                  value={formData.zipCode}
+                  onChange={(e) => handleFieldChange("zipCode", e.target.value)}
+                  className={`w-100 ${getError("address.zipCode") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("address.zipCode")}
+                />
+              </FieldIcon>
               {renderFieldError("address.zipCode")}
             </div>
           </div>
+        </div>
 
-          {/* Employment */}
-          <h6 className="text-muted mb-3">Employment</h6>
-          <div className="row g-3 mb-4">
+        {/* Employment */}
+        <div className="mb-4">
+          <div className="row g-3">
             <div className="col-md-6">
               <label htmlFor="companyName" className="form-label">Company Name</label>
-              <InputText
-                id="companyName"
-                value={formData.companyName}
-                onChange={(e) => handleFieldChange("companyName", e.target.value)}
-                className={`w-100 ${getError("companyName") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-briefcase">
+                <InputText
+                  id="companyName"
+                  value={formData.companyName}
+                  onChange={(e) => handleFieldChange("companyName", e.target.value)}
+                  className={`w-100 ${getError("companyName") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("companyName")}
+                />
+              </FieldIcon>
               {renderFieldError("companyName")}
             </div>
             <div className="col-md-6">
               <label htmlFor="requestedAmount" className="form-label">Requested Amount ($)</label>
-              <InputNumber
-                id="requestedAmount"
-                value={formData.requestedAmount}
-                onValueChange={(e) => handleFieldChange("requestedAmount", e.value ?? null)}
-                mode="currency"
-                currency="USD"
-                locale="en-US"
-                className={`w-100 ${getError("requestedAmount") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <FieldIcon icon="pi pi-dollar">
+                <InputNumber
+                  id="requestedAmount"
+                  value={formData.requestedAmount}
+                  onValueChange={(e) => handleFieldChange("requestedAmount", e.value ?? null)}
+                  mode="currency"
+                  currency="USD"
+                  locale="en-US"
+                  className={`w-100 ${getError("requestedAmount") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("requestedAmount")}
+                />
+              </FieldIcon>
               {renderFieldError("requestedAmount")}
             </div>
           </div>
+        </div>
 
-          {/* SSN */}
-          <h6 className="text-muted mb-3">Social Security Number</h6>
-          <div className="row mb-4">
+        {/* SSN */}
+        <div className="mb-4">
+          <div className="row g-3">
             <div className="col-md-4">
-              <label htmlFor="ssn" className="form-label">SSN</label>
-              <InputMask
-                id="ssn"
-                value={formData.ssn}
-                onChange={(e) => handleFieldChange("ssn", e.target.value || "")}
-                mask="999-99-9999"
-                placeholder="###-##-####"
-                className={`w-100 ${getError("ssn") ? "p-invalid" : ""}`}
-                disabled={isLoading}
-              />
+              <label htmlFor="ssn" className="form-label">Social Security Number</label>
+              <FieldIcon icon="pi pi-lock">
+                <InputMask
+                  id="ssn"
+                  value={formData.ssn}
+                  onChange={(e) => handleFieldChange("ssn", e.target.value || "")}
+                  mask="999-99-9999"
+                  placeholder="###-##-####"
+                  className={`w-100 ${getError("ssn") ? "p-invalid" : ""}`}
+                  disabled={isLoading}
+                  aria-invalid={!!getError("ssn")}
+                />
+              </FieldIcon>
               {renderFieldError("ssn")}
             </div>
           </div>
+        </div>
 
-          {/* Submit */}
-          <div className="d-flex gap-2">
-            <Button
-              type="submit"
-              label={isLoading ? "Submitting..." : "Submit Application"}
-              icon="pi pi-check"
-              loading={isLoading}
-              className="p-button-primary"
-              disabled={isLoading}
-            />
-            <Button
-              type="button"
-              label="Reset"
-              icon="pi pi-times"
-              className="p-button-secondary"
-              onClick={handleReset}
-              disabled={isLoading}
-            />
+        {/* Submit */}
+        <div className="d-flex flex-column flex-sm-row gap-2">
+          <Button
+            type="submit"
+            label={isLoading ? "Submitting..." : "Submit Application"}
+            icon="pi pi-check"
+            loading={isLoading}
+            className="btn-gradient p-button-primary flex-grow-1"
+            disabled={isLoading}
+          />
+          <Button
+            type="button"
+            label="Reset"
+            icon="pi pi-times"
+            className="p-button-secondary"
+            onClick={handleReset}
+            disabled={isLoading}
+          />
+        </div>
+
+        {isLoading && (
+          <div className="gradient-progress mt-3" role="progressbar" aria-label="Submitting application">
+            <div className="gradient-progress-fill"></div>
           </div>
-
-          {isLoading && (
-            <ProgressBar mode="indeterminate" className="mt-3" style={{ height: "4px" }} />
-          )}
-        </form>
-      </div>
+        )}
+      </form>
     </div>
   );
 }

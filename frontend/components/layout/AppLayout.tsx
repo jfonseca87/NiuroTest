@@ -2,11 +2,31 @@
 
 import { type ReactNode } from "react";
 import { Navbar } from "./Navbar";
-import { ProgressSpinner } from "primereact/progressspinner";
 
 interface AppLayoutProps {
   children: ReactNode;
   isLoading?: boolean;
+}
+
+function PageSkeleton() {
+  return (
+    <div className="card-modern p-4 p-md-5 mx-auto" style={{ maxWidth: "720px" }}>
+      <div className="d-flex flex-column align-items-center text-center mb-4">
+        <div className="skeleton-block mb-3" style={{ width: 180, height: 20 }} />
+        <div className="skeleton-block" style={{ width: 280, height: 16 }} />
+      </div>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="mb-4">
+          <div className="skeleton-block mb-2" style={{ width: 120, height: 14 }} />
+          <div className="skeleton-block" style={{ width: "100%", height: 46 }} />
+        </div>
+      ))}
+      <div className="d-flex gap-2 mt-4">
+        <div className="skeleton-block flex-grow-1" style={{ height: 48 }} />
+        <div className="skeleton-block" style={{ width: 110, height: 48 }} />
+      </div>
+    </div>
+  );
 }
 
 export function AppLayout({ children, isLoading = false }: AppLayoutProps) {
@@ -15,23 +35,21 @@ export function AppLayout({ children, isLoading = false }: AppLayoutProps) {
       <Navbar />
 
       <main className="flex-grow-1">
-        <div className="container py-4">
+        <div className="container py-4 py-lg-5">
           {isLoading ? (
-            <div className="d-flex justify-content-center align-items-center min-vh-50">
-              <ProgressSpinner
-                style={{ width: "50px", height: "50px" }}
-                strokeWidth="4"
-              />
-            </div>
+            <PageSkeleton />
           ) : (
-            children
+            <div className="page-enter">{children}</div>
           )}
         </div>
       </main>
 
-      <footer className="bg-light py-3 mt-auto border-top">
-        <div className="container text-center text-muted">
-          <small>NiuroTest &copy; {new Date().getFullYear()}</small>
+      <footer className="app-footer py-4 mt-auto">
+        <div className="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
+          <small className="fw-semibold">
+            NiuroTest <span className="gradient-text">·</span> Business financing
+          </small>
+          <small>&copy; {new Date().getFullYear()} NiuroTest. All rights reserved.</small>
         </div>
       </footer>
     </div>
