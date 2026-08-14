@@ -35,8 +35,10 @@ try
         client.Timeout = TimeSpan.FromSeconds(30);
     });
 
-    // Outbox processor (testable logic)
-    builder.Services.AddScoped<OutboxProcessor>();
+    // Outbox processor (testable logic). Stateless: it resolves its own scoped NiuroDbContext
+    // per batch via IServiceScopeFactory, so it must be a singleton to be consumed by the
+    // hosted service (OutboxWorker) without a scoped-from-singleton violation.
+    builder.Services.AddSingleton<OutboxProcessor>();
 
     // Worker that processes the outbox in the background
     builder.Services.AddHostedService<OutboxWorker>();
