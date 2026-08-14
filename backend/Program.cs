@@ -34,6 +34,11 @@ try
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
 
+    builder.Services.AddCors(options => options.AddPolicy("TestPolicy", policy =>
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()));
+
     // Validación con FluentValidation (UC-07).
     builder.Services.AddScoped<IValidator<LoanApplicationRequest>, LoanApplicationRequestValidator>();
     builder.Services.AddValidatorsFromAssemblyContaining<LoanApplicationRequestValidator>();
@@ -69,6 +74,11 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseCors("TestPolicy");
+    }
 
     app.UseAuthorization();
 
