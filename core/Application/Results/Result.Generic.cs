@@ -1,7 +1,7 @@
 namespace Niuro.Core.Application.Results;
 
 /// <summary>
-/// Result pattern para representar éxito o falla con valor.
+/// Result pattern to represent success or failure with a value.
 /// </summary>
 public class Result<T> : Result
 {

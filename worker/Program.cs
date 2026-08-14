@@ -5,7 +5,7 @@ using Niuro.Core.Infrastructure.Logging;
 using Niuro.Core.Infrastructure.Messaging;
 using Niuro.Worker.Infrastructure;
 
-// Mismo archivo rolling que el API (UC-02); la property "Service" diferencia el proceso.
+// Same rolling file as the API; the "Service" property differentiates the process.
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Service", "Niuro.Worker")
@@ -24,21 +24,21 @@ try
     builder.Logging.ClearProviders();
     builder.Services.AddSerilog();
 
-    // Persistencia: PostgreSQL vía user secrets (ConnectionStrings:Postgres)
+    // Persistence: PostgreSQL via user secrets (ConnectionStrings:Postgres)
     builder.Services.AddDbContext<NiuroDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
-    // HTTP Client para el servicio externo (mock) - UC-13
+    // HTTP client for the external service (mock)
     builder.Services.AddHttpClient<MockExternalClient>(client =>
     {
         client.BaseAddress = new Uri(builder.Configuration["ExternalService:BaseUrl"] ?? "https://localhost:7124");
         client.Timeout = TimeSpan.FromSeconds(30);
     });
 
-    // Procesador del outbox (lógica testable) - UC-13
+    // Outbox processor (testable logic)
     builder.Services.AddScoped<OutboxProcessor>();
 
-    // Worker que procesa el outbox en background - UC-13
+    // Worker that processes the outbox in the background
     builder.Services.AddHostedService<OutboxWorker>();
 
     var host = builder.Build();

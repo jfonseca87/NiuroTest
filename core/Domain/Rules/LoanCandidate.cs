@@ -1,8 +1,8 @@
 namespace Niuro.Core.Domain.Rules;
 
 /// <summary>
-/// Value object con los datos del solicitante normalizados para evaluación de reglas.
-/// SSN y State siempre vienen normalizados (SSN con guiones, State mayúsculas).
+/// Value object with the applicant's normalized data for rule evaluation.
+/// SSN and State are always normalized (SSN with dashes, State uppercase).
 /// </summary>
 public sealed record LoanCandidate
 {
@@ -21,13 +21,13 @@ public sealed record LoanCandidate
     }
 
     /// <summary>
-    /// Normaliza SSN a formato ###-##-####.
+    /// Normalizes SSN to ###-##-#### format.
     /// </summary>
     public static string NormalizeSsn(string ssn)
     {
         var digits = new string(ssn.Where(char.IsDigit).ToArray());
         if (digits.Length != 9)
-            return ssn; // Retorna original si no tiene 9 dígitos
+            return ssn; // Returns original if it does not have 9 digits
 
         return $"{digits[..3]}-{digits[3..5]}-{digits[5..]}";
     }

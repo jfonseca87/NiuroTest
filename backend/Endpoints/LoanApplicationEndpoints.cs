@@ -8,13 +8,13 @@ using Niuro.Core.Domain.Rules;
 namespace Niuro.Api.Endpoints;
 
 /// <summary>
-/// Endpoints de minimal API para las solicitudes de préstamo.
-/// Se registran vía <see cref="MapLoanApplicationEndpoints"/>; el startup solo invoca el módulo.
+/// Minimal API endpoints for loan applications.
+/// Registered via <see cref="MapLoanApplicationEndpoints"/>; startup only invokes the module.
 /// </summary>
 public static class LoanApplicationEndpoints
 {
     /// <summary>
-    /// Mapea los endpoints de solicitudes bajo "api/loan-applications".
+    /// Maps the application endpoints under "api/loan-applications".
     /// </summary>
     public static IEndpointRouteBuilder MapLoanApplicationEndpoints(this IEndpointRouteBuilder app)
     {
@@ -24,7 +24,7 @@ public static class LoanApplicationEndpoints
     }
 
     /// <summary>
-    /// Recibe una solicitud, evalúa el rule engine y, si aprueba, persiste de forma transaccional.
+    /// Receives an application, evaluates the rule engine and, if approved, persists transactionally.
     /// </summary>
     public static async Task<IResult> Submit(
         LoanApplicationRequest request,
@@ -50,7 +50,7 @@ public static class LoanApplicationEndpoints
             });
         }
 
-        // UC-08: evaluar con el rule engine.
+        // Evaluate with the rule engine.
         var candidate = LoanCandidate.FromRequest(request);
         var ruleResult = await ruleEngine.EvaluateAsync(candidate, ct);
 
@@ -63,7 +63,7 @@ public static class LoanApplicationEndpoints
             return Results.Ok(LoanDecision.Denied(ruleResult.Error!));
         }
 
-        // UC-11/12: persistir customer + application + outbox (transaccional)
+        // Persist customer + application + outbox (transactional)
         var submitResult = await submitLoanApplication.ExecuteAsync(request, ct);
 
         if (submitResult.IsFailure)
@@ -85,8 +85,8 @@ public static class LoanApplicationEndpoints
     }
 
     /// <summary>
-    /// Convierte un PropertyName de FluentValidation (PascalCase, ej. "Address.State")
-    /// a camelCase por segmento (ej. "address.state"), consistente con los campos del frontend.
+    /// Converts a FluentValidation PropertyName (PascalCase, e.g. "Address.State")
+    /// to camelCase per segment (e.g. "address.state"), consistent with the frontend fields.
     /// </summary>
     private static string ToCamelCase(string propertyName)
     {

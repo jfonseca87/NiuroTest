@@ -1,8 +1,8 @@
 namespace Niuro.Core.Domain.Entities;
 
 /// <summary>
-/// Evento del outbox: registro persistido en la misma transacción que el Customer+Application
-/// (UC-11/12) y enviado al servicio externo en background por el worker (UC-13).
+/// Outbox event: record persisted in the same transaction as the Customer+Application
+/// and sent to the external service in the background by the worker.
 /// </summary>
 public class OutboxEvent
 {

@@ -21,7 +21,7 @@ public class LoanApplicationsApiTests : IDisposable
     {
         _fixture = fixture;
 
-        // Program.cs aplica Migrate() (incluido el seed de blacklist) al arrancar contra el fixture.
+        // Program.cs applies Migrate() (including the blacklist seed) at startup against the fixture.
         _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
                 builder.UseSetting("ConnectionStrings:Postgres", _fixture.ConnectionString));
@@ -125,7 +125,7 @@ public class LoanApplicationsApiTests : IDisposable
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
-        // Las claves se normalizan a camelCase para que el frontend las mapee (getFieldError).
+        // Keys are normalized to camelCase so the frontend can map them (getFieldError).
         Assert.True(problem.GetProperty("errors").TryGetProperty("ssn", out _));
         Assert.True(problem.GetProperty("errors").TryGetProperty("firstName", out _));
         Assert.True(problem.GetProperty("errors").TryGetProperty("address.state", out _));
@@ -140,7 +140,7 @@ public class LoanApplicationsApiTests : IDisposable
         await client.PostAsJsonAsync("/api/loan-applications", ValidPayload(ssn: "999-99-9999"));
         await client.PostAsJsonAsync("/api/loan-applications", ValidPayload(ssn: "999-99-9999"));
 
-        Assert.Equal(1, await CountAsync<Customer>(c => c.Ssn == "999-99-9999")); // no duplica
+        Assert.Equal(1, await CountAsync<Customer>(c => c.Ssn == "999-99-9999")); // no duplicate
         Assert.Equal(1, await CountAsync<OutboxEvent>(e => e.Operation == OutboxOperation.Create));
         Assert.Equal(1, await CountAsync<OutboxEvent>(e => e.Operation == OutboxOperation.Update));
     }

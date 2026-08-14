@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Niuro.Core.Application.Responses;
 
 /// <summary>
-/// Respuesta del rule engine con la decisión de la solicitud.
+/// Rule engine response with the application decision.
 /// </summary>
 public class LoanDecision
 {

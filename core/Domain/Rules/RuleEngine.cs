@@ -3,8 +3,8 @@ using Niuro.Core.Application.Results;
 namespace Niuro.Core.Domain.Rules;
 
 /// <summary>
-/// Motor de reglas de denegación. Evalúa todas las reglas registradas;
-/// la primera que aplica retorna Denied. Si ninguna aplica → Approved.
+/// Denial rule engine. Evaluates all registered rules;
+/// the first one that applies returns Denied. If none applies → Approved.
 /// </summary>
 public sealed class RuleEngine : IRuleEngine
 {
@@ -16,9 +16,9 @@ public sealed class RuleEngine : IRuleEngine
     }
 
     /// <summary>
-    /// Evalúa el candidato contra todas las reglas de denegación.
+    /// Evaluates the candidate against all denial rules.
     /// </summary>
-    /// <returns>Result.Success() si aprobado, Result.Failure(reasonCode) si denegado.</returns>
+    /// <returns>Result.Success() if approved, Result.Failure(reasonCode) if denied.</returns>
     public async Task<Result> EvaluateAsync(LoanCandidate candidate, CancellationToken ct = default)
     {
         foreach (var rule in _rules)

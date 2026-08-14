@@ -4,8 +4,8 @@ using System.Text.Json;
 namespace Niuro.Core.Infrastructure.Messaging;
 
 /// <summary>
-/// Cliente HTTP tipado para comunicarse con el servicio externo (mock).
-/// Implementa el contrato: POST /api/customers (create) y PUT /api/customers/{ssn} (update).
+/// Typed HTTP client for communicating with the external service (mock).
+/// Implements the contract: POST /api/customers (create) and PUT /api/customers/{ssn} (update).
 /// </summary>
 public sealed class MockExternalClient
 {
@@ -22,7 +22,7 @@ public sealed class MockExternalClient
     }
 
     /// <summary>
-    /// Envía POST /api/customers para crear un cliente en el servicio externo.
+    /// Sends POST /api/customers to create a customer in the external service.
     /// </summary>
     public async Task<HttpResponseMessage> CreateCustomerAsync(object payload, CancellationToken ct = default)
     {
@@ -32,7 +32,7 @@ public sealed class MockExternalClient
     }
 
     /// <summary>
-    /// Envía PUT /api/customers/{ssn} para actualizar un cliente en el servicio externo.
+    /// Sends PUT /api/customers/{ssn} to update a customer in the external service.
     /// </summary>
     public async Task<HttpResponseMessage> UpdateCustomerAsync(string ssn, object payload, CancellationToken ct = default)
     {

@@ -4,9 +4,9 @@ using Niuro.Core.Domain.Entities;
 namespace Niuro.Core.Infrastructure;
 
 /// <summary>
-/// DbContext de la aplicación. Unit of work + repository para el CRUD trivial de esta solución.
-/// Todas las escrituras transaccionales (Customer + Application + OutboxEvent) se commitean
-/// con un solo SaveChanges (UC-11/12).
+/// Application DbContext. Unit of work + repository for this solution's trivial CRUD.
+/// All transactional writes (Customer + Application + OutboxEvent) are committed
+/// with a single SaveChanges.
 /// </summary>
 public class NiuroDbContext(DbContextOptions<NiuroDbContext> options) : DbContext(options)
 {

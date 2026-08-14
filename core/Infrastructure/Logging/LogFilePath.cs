@@ -1,9 +1,9 @@
 namespace Niuro.Core.Infrastructure.Logging;
 
 /// <summary>
-/// Resuelve la ruta del archivo de log compartido por API y worker contra la raíz del repo.
-/// El API y el worker deben escribir al MISMO archivo rolling (logs/niuro-backend-*.log),
-/// sin importar desde qué directorio se lance el proceso (dotnet run usa el cwd del proyecto).
+/// Resolves the path of the log file shared by API and worker against the repo root.
+/// The API and the worker must write to the SAME rolling file (logs/niuro-backend-*.log),
+/// regardless of the directory the process is launched from (dotnet run uses the project cwd).
 /// </summary>
 public static class LogFilePath
 {

@@ -51,7 +51,7 @@ public class MockExternalClientTests
     }
 
     /// <summary>
-    /// Stub de HttpMessageHandler que captura la petición y responde 201 (Create) / 200 (Update).
+    /// HttpMessageHandler stub that captures the request and responds 201 (Create) / 200 (Update).
     /// </summary>
     private sealed class StubHandler : HttpMessageHandler
     {

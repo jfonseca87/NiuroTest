@@ -63,7 +63,7 @@ public class CustomerTests
             LastName = "Name",
             CompanyName = "New Co",
             RequestedAmount = 1000m,
-            Ssn = "999-99-9999", // SSN distinto no debe alterar la clave de negocio
+            Ssn = "999-99-9999", // a different SSN must not alter the business key
             Address = new AddressDto
             {
                 Street = "2 New St",

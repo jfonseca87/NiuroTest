@@ -1,17 +1,17 @@
 namespace Niuro.Core.Domain.Rules;
 
 /// <summary>
-/// Interfaz para reglas de denegación. Cada regla es independiente (Open/Closed).
+/// Interface for denial rules. Each rule is independent (Open/Closed).
 /// </summary>
 public interface IDenialRule
 {
     /// <summary>
-    /// Código de razón de denegación (ej: "STATE_NY", "SSN_BLACKLISTED").
+    /// Denial reason code (e.g. "STATE_NY", "SSN_BLACKLISTED").
     /// </summary>
     string ReasonCode { get; }
 
     /// <summary>
-    /// Evalúa si esta regla aplica al candidato.
+    /// Evaluates whether this rule applies to the candidate.
     /// </summary>
     Task<bool> AppliesAsync(LoanCandidate candidate, CancellationToken ct = default);
 }

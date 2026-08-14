@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-// Almacenamiento en memoria (mock)
+// In-memory storage (mock)
 var customers = new Dictionary<string, CustomerData>(StringComparer.OrdinalIgnoreCase);
 
 app.MapGet("/", () => "Niuro Mock External Service");
 
-// POST /api/customers - Crear customer
+// POST /api/customers - Create customer
 app.MapPost("/api/customers", (CustomerPayload payload) =>
 {
     if (string.IsNullOrWhiteSpace(payload.Customer?.Ssn))
@@ -37,12 +37,12 @@ app.MapPost("/api/customers", (CustomerPayload payload) =>
     return Results.Ok(new { message = "Customer created", ssn = key });
 });
 
-// PUT /api/customers/{ssn} - Actualizar customer
+// PUT /api/customers/{ssn} - Update customer
 app.MapPut("/api/customers/{ssn}", (string ssn, CustomerPayload payload) =>
 {
     if (!customers.TryGetValue(ssn, out var existing))
     {
-        // Si no existe, lo creamos (comportamiento de "upsert" simple)
+        // If it does not exist, create it (simple "upsert" behavior)
         customers[ssn] = new CustomerData
         {
             Ssn = ssn,
@@ -56,7 +56,7 @@ app.MapPut("/api/customers/{ssn}", (string ssn, CustomerPayload payload) =>
         return Results.Ok(new { message = "Customer upserted", ssn });
     }
 
-    // Actualizar campos existentes
+    // Update existing fields
     existing.FirstName = payload.Customer?.FirstName ?? existing.FirstName;
     existing.LastName = payload.Customer?.LastName ?? existing.LastName;
     existing.Address = payload.Customer?.Address ?? existing.Address;
@@ -67,12 +67,12 @@ app.MapPut("/api/customers/{ssn}", (string ssn, CustomerPayload payload) =>
     return Results.Ok(new { message = "Customer updated", ssn });
 });
 
-// GET /api/customers - Para debug/demo (UC-15)
+// GET /api/customers - For debug/demo
 app.MapGet("/api/customers", () => customers.Values);
 
 app.Run();
 
-// Types para el mock
+// Types for the mock
 public class CustomerPayload
 {
     public CustomerData? Customer { get; set; }

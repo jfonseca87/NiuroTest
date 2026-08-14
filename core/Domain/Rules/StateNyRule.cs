@@ -1,7 +1,7 @@
 namespace Niuro.Core.Domain.Rules;
 
 /// <summary>
-/// Regla de denegación: si el estado es NY (New York) → Denied.
+/// Denial rule: if the state is NY (New York) → Denied.
 /// </summary>
 public sealed class StateNyRule : IDenialRule
 {

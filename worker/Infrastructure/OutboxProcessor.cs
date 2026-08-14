@@ -7,8 +7,8 @@ using Niuro.Core.Infrastructure.Messaging;
 namespace Niuro.Worker.Infrastructure;
 
 /// <summary>
-/// Procesa eventos del outbox pendientes: lee de la BD, los envía al servicio externo (mock)
-/// por HTTP y actualiza su estado. Lógica separada del BackgroundService para poder probarla.
+/// Processes pending outbox events: reads from the database, sends them to the external service (mock)
+/// via HTTP and updates their status. Logic separated from the BackgroundService so it can be tested.
 /// </summary>
 public sealed class OutboxProcessor
 {
@@ -18,7 +18,7 @@ public sealed class OutboxProcessor
     };
 
     /// <summary>
-    /// Límite de eventos procesados por ciclo de polling.
+    /// Limit of events processed per polling cycle.
     /// </summary>
     public const int BatchSize = 100;
 
@@ -37,7 +37,7 @@ public sealed class OutboxProcessor
     }
 
     /// <summary>
-    /// Procesa un lote de eventos pendientes (máximo <see cref="BatchSize"/>, en orden por CreatedAt).
+    /// Processes a batch of pending events (at most <see cref="BatchSize"/>, ordered by CreatedAt).
     /// </summary>
     public async Task<int> ProcessPendingEventsAsync(CancellationToken ct)
     {
@@ -74,7 +74,7 @@ public sealed class OutboxProcessor
 
     private async Task ProcessEventAsync(OutboxEvent outboxEvent, NiuroDbContext dbContext, CancellationToken ct)
     {
-        // Extraer SSN del payload para poder hacer PUT con el SSN como key
+        // Extract SSN from the payload so we can PUT with the SSN as the key
         var payloadJson = JsonDocument.Parse(outboxEvent.Payload);
         var ssn = payloadJson.RootElement
             .GetProperty("customer")

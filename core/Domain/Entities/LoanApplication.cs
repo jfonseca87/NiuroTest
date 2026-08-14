@@ -1,8 +1,8 @@
 namespace Niuro.Core.Domain.Entities;
 
 /// <summary>
-/// Solicitud de préstamo del cliente. En este negocio lo importante no es el monto en sí,
-/// sino la petición de crédito que se envía al servicio externo con los datos del cliente.
+/// Customer's loan application. In this business, what matters is not the amount itself,
+/// but the credit request sent to the external service with the customer data.
 /// </summary>
 public class LoanApplication
 {

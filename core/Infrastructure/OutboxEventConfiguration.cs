@@ -15,7 +15,7 @@ public class OutboxEventConfiguration : IEntityTypeConfiguration<OutboxEvent>
         builder.Property(e => e.Status).HasConversion<string>().HasMaxLength(10).IsRequired();
         builder.Property(e => e.Payload).HasColumnType("jsonb");
 
-        // El worker (UC-13) consulta por estado pendiente en orden de creación.
+        // The worker queries by pending status in creation order.
         builder.HasIndex(e => new { e.Status, e.CreatedAt }).HasDatabaseName("IX_OutboxEvents_Status_CreatedAt");
         builder.Property(e => e.CreatedAt).IsRequired();
     }

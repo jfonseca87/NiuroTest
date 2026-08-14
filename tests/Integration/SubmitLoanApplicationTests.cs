@@ -68,7 +68,7 @@ public class SubmitLoanApplicationTests
         Assert.Equal(1, await CountAsync<LoanApplication>(a => a.CustomerId == result.Value.CustomerId));
         Assert.Equal(1, await CountAsync<OutboxEvent>(e => e.Operation == OutboxOperation.Create && e.Status == OutboxStatus.Pending));
 
-        // El payload del outbox se guarda en snake_case (contrato del worker y del mock).
+        // The outbox payload is stored in snake_case (worker and mock contract).
         var payload = await QueryAsync(db => db.OutboxEvents
             .Where(e => e.Operation == OutboxOperation.Create)
             .Select(e => e.Payload)
@@ -84,11 +84,11 @@ public class SubmitLoanApplicationTests
     {
         await _fixture.ResetDbAsync();
 
-        // Primer submit crea el customer.
+        // First submit creates the customer.
         var useCase = await ResolveUseCaseAsync();
         await useCase.ExecuteAsync(ValidRequest(ssn: "123-45-6789"));
 
-        // Segundo submit con datos nuevos → actualiza customer + OutboxEvent(Update).
+        // Second submit with new data → updates customer + OutboxEvent(Update).
         var updated = ValidRequest(ssn: "123-45-6789");
         updated = new LoanApplicationRequest
         {
@@ -102,7 +102,7 @@ public class SubmitLoanApplicationTests
         var result2 = await useCase.ExecuteAsync(updated);
 
         Assert.True(result2.IsSuccess);
-        Assert.Equal(1, await CountAsync<Customer>(c => c.Ssn == "123-45-6789")); // no se duplica
+        Assert.Equal(1, await CountAsync<Customer>(c => c.Ssn == "123-45-6789")); // not duplicated
         Assert.Equal(1, await CountAsync<OutboxEvent>(e => e.Operation == OutboxOperation.Update));
 
         var firstName = await QueryAsync(db => db.Customers
@@ -145,7 +145,7 @@ public class SubmitLoanApplicationTests
     {
         await _fixture.ResetDbAsync();
 
-        // Customer existente SIN application (caso edge: se crea directo en BD).
+        // Existing customer WITHOUT application (edge case: created directly in the DB).
         using (var seedScope = _fixture.CreateScope())
         {
             var db = seedScope.ServiceProvider.GetRequiredService<NiuroDbContext>();
@@ -165,7 +165,7 @@ public class SubmitLoanApplicationTests
         var result = await useCase.ExecuteAsync(ValidRequest(ssn: "555-55-5555"));
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(1, await CountAsync<Customer>(c => c.Ssn == "555-55-5555")); // no duplica
+        Assert.Equal(1, await CountAsync<Customer>(c => c.Ssn == "555-55-5555")); // not duplicated
         Assert.Equal(1, await CountAsync<LoanApplication>(a => a.CustomerId == result.Value.CustomerId));
         Assert.Equal(1, await CountAsync<OutboxEvent>(e => e.Operation == OutboxOperation.Update));
     }

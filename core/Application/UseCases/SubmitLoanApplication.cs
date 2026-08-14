@@ -10,17 +10,17 @@ using Niuro.Core.Infrastructure;
 namespace Niuro.Core.Application.UseCases;
 
 /// <summary>
-/// Caso de uso: procesar una solicitud de préstamo aprobada.
-/// 1. Normaliza SSN
-/// 2. Busca customer por SSN
-/// 3. Si no existe → crea Customer + Application + OutboxEvent (Create)
-/// 4. Si existe → actualiza Customer + Application + OutboxEvent (Update)
-/// 5. Todo en una transacción explícita (BeginTransaction): si cualquier paso falla, rollback total.
+/// Use case: process an approved loan application.
+/// 1. Normalize SSN
+/// 2. Look up customer by SSN
+/// 3. If it does not exist → create Customer + Application + OutboxEvent (Create)
+/// 4. If it exists → update Customer + Application + OutboxEvent (Update)
+/// 5. Everything in an explicit transaction (BeginTransaction): if any step fails, full rollback.
 /// </summary>
 public sealed class SubmitLoanApplication : ISubmitLoanApplication
 {
-    // El payload del outbox se serializa en snake_case, consistente con el OutboxProcessor
-    // (que extrae customer.ssn) y con el contrato del servicio externo (UC-13).
+    // The outbox payload is serialized in snake_case, consistent with the OutboxProcessor
+    // (which extracts customer.ssn) and with the external service contract.
     private static readonly JsonSerializerOptions OutboxJsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
@@ -44,10 +44,10 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
         LoanApplicationRequest request,
         CancellationToken ct = default)
     {
-        // 1. Normalizar SSN
+        // 1. Normalize SSN
         var normalizedSsn = LoanCandidate.NormalizeSsn(request.Ssn);
 
-        // 2. Evaluar reglas (UC-08) - por si acaso llegó sin evaluar
+        // 2. Evaluate rules, in case it arrived un-evaluated
         var candidate = LoanCandidate.FromRequest(request);
         var ruleResult = await _ruleEngine.EvaluateAsync(candidate, ct);
         if (ruleResult.IsFailure)
@@ -55,17 +55,17 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
             return Result.Failure<LoanApplication>(ruleResult.Error!);
         }
 
-        // 3. Buscar customer existente
+        // 3. Look up existing customer
         var existingCustomer = await _customerQuery.GetBySsnAsync(normalizedSsn, ct);
         var isReturningCustomer = existingCustomer is not null;
 
         if (isReturningCustomer)
         {
-            // UC-12: Customer existente → actualizar
+            // Returning customer: update existing
             return await HandleReturningCustomerAsync(existingCustomer!, request, ct);
         }
 
-        // UC-11: Customer nuevo → crear
+        // New customer: create
         return await HandleNewCustomerAsync(normalizedSsn, request, ct);
     }
 
@@ -74,11 +74,11 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
         LoanApplicationRequest request,
         CancellationToken ct)
     {
-        // Iniciar transacción explícita
+        // Begin explicit transaction
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
         try
         {
-            // Crear nuevo customer
+            // Create new customer
             var customer = new Customer
             {
                 Id = Guid.NewGuid(),
@@ -93,7 +93,7 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
                     request.Address.ZipCode)
             };
 
-            // Crear application
+            // Create application
             var application = new LoanApplication
             {
                 Id = Guid.NewGuid(),
@@ -102,7 +102,7 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
             };
             customer.Application = application;
 
-            // Crear evento outbox (Create)
+            // Create outbox event (Create)
             var outboxPayload = CreateOutboxPayload("Create", customer, application);
             var outboxEvent = new OutboxEvent
             {
@@ -113,7 +113,7 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Persistir todo en la transacción
+            // Persist everything within the transaction
             _dbContext.Customers.Add(customer);
             _dbContext.Applications.Add(application);
             _dbContext.OutboxEvents.Add(outboxEvent);
@@ -135,7 +135,7 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
         LoanApplicationRequest request,
         CancellationToken ct)
     {
-        // Si no tiene Application, crear una nueva (caso edge)
+        // If it has no Application, create a new one (edge case)
         var application = customer.Application;
         if (application is null)
         {
@@ -153,14 +153,14 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
             application.RequestedAmount = request.RequestedAmount;
         }
 
-        // Iniciar transacción explícita
+        // Begin explicit transaction
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
         try
         {
-            // UC-12: Actualizar customer existente con nuevos datos
+            // Update existing customer with new data
             customer.UpdateFromRequest(request);
 
-            // Crear evento outbox (Update)
+            // Create outbox event (Update)
             var outboxPayload = CreateOutboxPayload("Update", customer, application);
             var outboxEvent = new OutboxEvent
             {
@@ -171,7 +171,7 @@ public sealed class SubmitLoanApplication : ISubmitLoanApplication
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Persistir en la transacción (no se necesita Update() explícito porque las entidades ya están trackeadas)
+            // Persist within the transaction (no explicit Update() needed because entities are already tracked)
             _dbContext.OutboxEvents.Add(outboxEvent);
 
             await _dbContext.SaveChangesAsync(ct);

@@ -11,7 +11,7 @@ public class StateNyRuleTests
     [Theory]
     [InlineData("NY", true)]
     [InlineData("CA", false)]
-    [InlineData("ny", false)] // Case sensitive: solo mayúsculas
+    [InlineData("ny", false)] // Case sensitive: uppercase only
     public async Task Applies_ReturnsExpected(string state, bool expected)
     {
         var rule = new StateNyRule();
@@ -123,14 +123,14 @@ public class RuleEngineTests
     [Fact]
     public async Task Evaluate_FirstMatchingRuleWins()
     {
-        // Si ambas reglas aplican, gana la primera (StateNY en este caso por orden)
+        // If both rules apply, the first one wins (StateNY in this case, by order)
         var mockQuery = new Mock<IBlacklistedSsnQuery>();
         mockQuery.Setup(q => q.IsBlacklistedAsync("123-45-6789", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var rules = new IDenialRule[]
         {
-            new StateNyRule(),          // NY aplica primero
+            new StateNyRule(),          // NY applies first
             new BlacklistedSsnRule(mockQuery.Object)
         };
         var engine = new CoreRuleEngine(rules);
@@ -139,14 +139,14 @@ public class RuleEngineTests
         var result = await engine.EvaluateAsync(candidate);
 
         Assert.True(result.IsFailure);
-        Assert.Equal("STATE_NY", result.Error); // No SSN_BLACKLISTED porque NY gana primero
+        Assert.Equal("STATE_NY", result.Error); // Not SSN_BLACKLISTED because NY wins first
     }
 }
 
 public class OpenClosedPrincipleTests
 {
     /// <summary>
-    /// Demuestra Open/Closed: agregar una nueva regla NO modifica las existentes.
+    /// Demonstrates Open/Closed: adding a new rule does not modify existing ones.
     /// </summary>
     [Fact]
     public async Task AddingNewRule_DoesNotModifyExistingRules()
@@ -155,7 +155,7 @@ public class OpenClosedPrincipleTests
         mockQuery.Setup(q => q.IsBlacklistedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        // Regla extra fake para demostrar Open/Closed (solo aplica con SSN especial)
+        // Extra fake rule to demonstrate Open/Closed (only applies with a special SSN)
         var fakeRule = new FakeDenialRule("FAKE_REASON");
 
         var rulesWithFake = new IDenialRule[]
@@ -167,18 +167,18 @@ public class OpenClosedPrincipleTests
 
         var engine = new CoreRuleEngine(rulesWithFake);
 
-        // SSN normal: la regla fake NO aplica (solo aplica para "FAKE-SSN")
+        // Normal SSN: the fake rule does NOT apply (only applies for "FAKE-SSN")
         var candidate = new LoanCandidate { Ssn = "999-99-9999", State = "CA" };
         var result = await engine.EvaluateAsync(candidate);
         Assert.True(result.IsSuccess);
 
-        // Verificar que StateNyRule sigue funcionando igual que antes
+        // Verify that StateNyRule still works the same as before
         var candidateNy = new LoanCandidate { Ssn = "111-11-1111", State = "NY" };
         var resultNy = await engine.EvaluateAsync(candidateNy);
         Assert.True(resultNy.IsFailure);
         Assert.Equal("STATE_NY", resultNy.Error);
 
-        // Verificar que la nueva regla fake también puede activar si quisiera
+        // Verify that the new fake rule can also trigger if it wanted to
         var candidateFake = new LoanCandidate { Ssn = "FAKE-SSN", State = "CA" };
         var resultFake = await engine.EvaluateAsync(candidateFake);
         Assert.True(resultFake.IsFailure);
@@ -189,8 +189,8 @@ public class OpenClosedPrincipleTests
 public class RuleEngineDiTests
 {
     /// <summary>
-    /// Valida el wiring real del Rule Engine: replica el registro de Program.cs y
-    /// comprueba que el DI inyecta AMBAS reglas (en orden) vía IEnumerable<IDenialRule>.
+    /// Validates the real Rule Engine wiring: replicates the registration in Program.cs and
+    /// verifies that DI injects BOTH rules (in order) via IEnumerable<IDenialRule>.
     /// </summary>
     [Fact]
     public async Task RuleEngine_LoadsAllRegisteredRulesFromDi_InRegistrationOrder()
@@ -206,18 +206,18 @@ public class RuleEngineDiTests
 
         var engine = scope.ServiceProvider.GetRequiredService<CoreRuleEngine>();
 
-        // Estado NY + SSN en blacklist: gana StateNyRule (registrada primero).
+        // NY state + blacklisted SSN: StateNyRule wins (registered first).
         var nyResult = await engine.EvaluateAsync(new LoanCandidate { Ssn = "123-45-6789", State = "NY" });
         Assert.Equal("STATE_NY", nyResult.Error);
 
-        // Estado CA + SSN en blacklist: ya no aplica StateNyRule, aplica BlacklistedSsnRule.
+        // CA state + blacklisted SSN: StateNyRule no longer applies, BlacklistedSsnRule does.
         var ssnResult = await engine.EvaluateAsync(new LoanCandidate { Ssn = "123-45-6789", State = "CA" });
         Assert.Equal("SSN_BLACKLISTED", ssnResult.Error);
     }
 
     /// <summary>
-    /// Stub que siempre responde que el SSN está en blacklist, para poder resolver
-    /// BlacklistedSsnRule desde el contenedor sin tocar PostgreSQL.
+    /// Stub that always reports the SSN as blacklisted, so we can resolve
+    /// BlacklistedSsnRule from the container without touching PostgreSQL.
     /// </summary>
     private sealed class StubBlacklistedSsnQuery : IBlacklistedSsnQuery
     {
@@ -227,8 +227,8 @@ public class RuleEngineDiTests
 }
 
 /// <summary>
-/// Regla fake para demostrar Open/Closed: el principio se cumple si podemos
-/// agregar esta clase SIN modificar StateNyRule ni BlacklistedSsnRule.
+/// Fake rule to demonstrate Open/Closed: the principle holds if we can
+/// add this class WITHOUT modifying StateNyRule or BlacklistedSsnRule.
 /// </summary>
 internal sealed class FakeDenialRule : IDenialRule
 {

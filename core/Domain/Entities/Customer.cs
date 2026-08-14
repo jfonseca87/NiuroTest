@@ -3,8 +3,8 @@ using Niuro.Core.Application.DTOs;
 namespace Niuro.Core.Domain.Entities;
 
 /// <summary>
-/// Solicitante de un préstamo. Se identifica por SSN (clave natural, normalizada con guiones).
-/// Un mismo SSN = un único Customer en la BD (UC-11/12).
+/// Loan applicant. Identified by SSN (natural key, normalized with dashes).
+/// The same SSN = a single Customer in the database.
 /// </summary>
 public class Customer
 {
@@ -17,8 +17,8 @@ public class Customer
     public LoanApplication? Application { get; set; }
 
     /// <summary>
-    /// Actualiza los datos del cliente con los de una nueva solicitud (UC-12).
-    /// El SSN no cambia (es la clave de negocio).
+    /// Updates the customer data with that of a new application.
+    /// The SSN does not change (it is the business key).
     /// </summary>
     public void UpdateFromRequest(LoanApplicationRequest request)
     {

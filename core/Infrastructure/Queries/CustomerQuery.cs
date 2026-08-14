@@ -6,7 +6,7 @@ using Niuro.Core.Infrastructure;
 namespace Niuro.Core.Infrastructure.Queries;
 
 /// <summary>
-/// Implementación de ICustomerQuery usando EF Core.
+/// ICustomerQuery implementation using EF Core.
 /// </summary>
 public sealed class CustomerQuery : ICustomerQuery
 {

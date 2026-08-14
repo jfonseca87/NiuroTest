@@ -1,15 +1,15 @@
 namespace Niuro.Worker.Infrastructure;
 
 /// <summary>
-/// BackgroundService que procesa eventos de Outbox pendientes en un bucle de polling.
-/// La lógica de proceso está delegada en <see cref="OutboxProcessor"/>.
+/// BackgroundService that processes pending Outbox events in a polling loop.
+/// The processing logic is delegated to <see cref="OutboxProcessor"/>.
 /// </summary>
 public sealed class OutboxWorker(
     OutboxProcessor processor,
     ILogger<OutboxWorker> logger) : BackgroundService
 {
     /// <summary>
-    /// Intervalo entre ciclos de polling.
+    /// Interval between polling cycles.
     /// </summary>
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(5);
 

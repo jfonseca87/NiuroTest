@@ -5,7 +5,7 @@ using Niuro.Core.Infrastructure;
 namespace Niuro.Core.Infrastructure.Queries;
 
 /// <summary>
-/// Implementación de IBlacklistedSsnQuery usando EF Core.
+/// IBlacklistedSsnQuery implementation using EF Core.
 /// </summary>
 public sealed class BlacklistedSsnQuery : IBlacklistedSsnQuery
 {

@@ -3,7 +3,7 @@ using Niuro.Core.Domain.Queries;
 namespace Niuro.Core.Domain.Rules;
 
 /// <summary>
-/// Regla de denegación: si el SSN está en la blacklist → Denied.
+/// Denial rule: if the SSN is on the blacklist → Denied.
 /// </summary>
 public sealed class BlacklistedSsnRule : IDenialRule
 {

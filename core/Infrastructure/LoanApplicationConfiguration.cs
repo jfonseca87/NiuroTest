@@ -12,7 +12,7 @@ public class LoanApplicationConfiguration : IEntityTypeConfiguration<LoanApplica
         builder.HasKey(a => a.Id);
         builder.Property(a => a.RequestedAmount).HasPrecision(18, 2);
 
-        // Invariante UC-12: un mismo SSN = una sola Application (se actualiza, no duplica).
+        // Invariant: the same SSN = a single Application (updated, not duplicated).
         builder.HasIndex(a => a.CustomerId).IsUnique();
 
         builder.HasOne(a => a.Customer)

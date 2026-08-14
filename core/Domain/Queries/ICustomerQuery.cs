@@ -3,7 +3,7 @@ using Niuro.Core.Domain.Entities;
 namespace Niuro.Core.Domain.Queries;
 
 /// <summary>
-/// Query para verificar si un customer existe por SSN.
+/// Query to check whether a customer exists by SSN.
 /// </summary>
 public interface ICustomerQuery
 {

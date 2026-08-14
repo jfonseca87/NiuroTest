@@ -15,14 +15,14 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasMaxLength(11)
             .IsRequired();
 
-        // Invariante UC-12: un mismo SSN = un solo Customer (la rama update actualiza, no inserta).
+        // Invariant: the same SSN = a single Customer (the update branch updates, does not insert).
         builder.HasIndex(c => c.Ssn).IsUnique();
 
         builder.Property(c => c.FirstName).HasMaxLength(100).IsRequired();
         builder.Property(c => c.LastName).HasMaxLength(100).IsRequired();
         builder.Property(c => c.CompanyName).HasMaxLength(150).IsRequired();
 
-        // Value object: columnas propias para evitar tablas adicionales.
+        // Value object: own columns to avoid additional tables.
         builder.OwnsOne(c => c.Address, address =>
         {
             address.Property(a => a.Street).HasColumnName("Address_Street").HasMaxLength(200).IsRequired();

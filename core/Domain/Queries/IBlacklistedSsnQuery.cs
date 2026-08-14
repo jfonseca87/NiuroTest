@@ -1,8 +1,8 @@
 namespace Niuro.Core.Domain.Queries;
 
 /// <summary>
-/// Query para verificar si un SSN está en la blacklist.
-/// Implementada en infraestructura para mantener el dominio sin dependencia de EF Core.
+/// Query to check whether an SSN is on the blacklist.
+/// Implemented in infrastructure to keep the domain free of EF Core dependency.
 /// </summary>
 public interface IBlacklistedSsnQuery
 {

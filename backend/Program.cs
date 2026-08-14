@@ -11,8 +11,8 @@ using Niuro.Core.Domain.Queries;
 using Niuro.Core.Application.UseCases;
 using Niuro.Api.Endpoints;
 
-// Logging de arranque: el API es un entry point con derechos de logging (el mock no loguea aquí).
-// El worker compartirá el mismo archivo rolling; la property "Service" diferencia qué proceso escribió.
+// Startup logging: the API is an entry point with logging rights (the mock does not log here).
+// The worker will share the same rolling file; the "Service" property differentiates which process wrote it.
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Service", "Niuro.Api")
@@ -34,8 +34,8 @@ try
     // Add services to the container.
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
-    // Se registran los servicios MVC porque WebApplicationFactory los requiere para configurar
-    // el host en los tests de integración; no se mapea ningún controller (la API es minimal).
+    // MVC services are registered because WebApplicationFactory needs them to configure
+    // the host in integration tests; no controller is mapped (the API is minimal).
     builder.Services.AddControllers();
 
     builder.Services.AddCors(options => options.AddPolicy("TestPolicy", policy =>
@@ -43,22 +43,22 @@ try
                   .AllowAnyHeader()
                   .AllowAnyMethod()));
 
-    // Validación con FluentValidation (UC-07).
+    // FluentValidation validation.
     builder.Services.AddScoped<IValidator<LoanApplicationRequest>, LoanApplicationRequestValidator>();
     builder.Services.AddValidatorsFromAssemblyContaining<LoanApplicationRequestValidator>();
 
-    // Persistencia: PostgreSQL vía user secrets (ConnectionStrings:Postgres), nunca en appsettings commiteado.
+    // Persistence: PostgreSQL via user secrets (ConnectionStrings:Postgres), never in committed appsettings.
     builder.Services.AddDbContext<NiuroDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
-    // Rule Engine (UC-08): reglas de denegación registradas por DI.
+    // Rule Engine: denial rules registered via DI.
     builder.Services.AddScoped<IBlacklistedSsnQuery, BlacklistedSsnQuery>();
     builder.Services.AddScoped<ICustomerQuery, CustomerQuery>();
     builder.Services.AddScoped<IDenialRule, StateNyRule>();
     builder.Services.AddScoped<IDenialRule, BlacklistedSsnRule>();
     builder.Services.AddScoped<IRuleEngine, RuleEngine>();
 
-    // Caso de uso (UC-11): persistencia transaccional.
+    // Use case: transactional persistence.
     builder.Services.AddScoped<ISubmitLoanApplication, SubmitLoanApplication>();
 
     var app = builder.Build();
@@ -86,7 +86,7 @@ try
 
     app.UseAuthorization();
 
-    // Minimal APIs: los endpoints viven en Endpoints/ y se registran aquí en una línea.
+    // Minimal APIs: endpoints live in Endpoints/ and are registered here in a single line.
     app.MapLoanApplicationEndpoints();
 
     app.Run();
@@ -101,6 +101,6 @@ finally
 }
 
 /// <summary>
-/// Marcador público para que WebApplicationFactory pueda arrancar la app en los tests de integración.
+/// Public marker so WebApplicationFactory can boot the app in integration tests.
 /// </summary>
 public partial class Program { }

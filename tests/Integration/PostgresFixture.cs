@@ -9,7 +9,7 @@ using Testcontainers.PostgreSql;
 namespace Niuro.Tests.Integration;
 
 /// <summary>
-/// Define la colección "Postgres": los tests de integración comparten un único contenedor.
+/// Defines the "Postgres" collection: integration tests share a single container.
 /// </summary>
 [CollectionDefinition("Postgres")]
 public class PostgresCollection : ICollectionFixture<PostgresFixture>
@@ -17,7 +17,7 @@ public class PostgresCollection : ICollectionFixture<PostgresFixture>
 }
 
 /// <summary>
-/// Fixture compartido con un único PostgreSQL (Testcontainers) y el DI real de la app.
+/// Shared fixture with a single PostgreSQL (Testcontainers) and the app's real DI.
 /// </summary>
 public class PostgresFixture : IAsyncLifetime
 {
@@ -46,7 +46,7 @@ public class PostgresFixture : IAsyncLifetime
             .AddScoped<Niuro.Core.Application.UseCases.ISubmitLoanApplication, Niuro.Core.Application.UseCases.SubmitLoanApplication>()
             .BuildServiceProvider();
 
-        // Aplica esquema + seed de SSNs en blacklist (idempotente).
+        // Applies schema + seed of blacklisted SSNs (idempotent).
         using var scope = _provider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<NiuroDbContext>();
         await db.Database.MigrateAsync();
@@ -59,12 +59,12 @@ public class PostgresFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Crea un scope con el contenedor de DI real (para resolver use cases / queries).
+    /// Creates a scope with the real DI container (to resolve use cases / queries).
     /// </summary>
     public IServiceScope CreateScope() => _provider.CreateScope();
 
     /// <summary>
-    /// Limpia las tablas de negocio dejando el seed de blacklist intacto.
+    /// Cleans the business tables leaving the blacklist seed intact.
     /// </summary>
     public async Task ResetDbAsync()
     {

@@ -13,7 +13,7 @@ using Testcontainers.PostgreSql;
 namespace Niuro.Tests.Worker;
 
 /// <summary>
-/// Test de integración del OutboxProcessor contra PostgreSQL real (Testcontainers).
+/// Integration test of the OutboxProcessor against real PostgreSQL (Testcontainers).
 /// </summary>
 public class OutboxProcessorTests : IAsyncLifetime
 {
@@ -44,7 +44,7 @@ public class OutboxProcessorTests : IAsyncLifetime
             .AddScoped<OutboxProcessor>()
             .BuildServiceProvider();
 
-        // Esquema suficiente para el outbox (no requiere las migraciones de seed de blacklist).
+        // Schema sufficient for the outbox (does not require the blacklist seed migrations).
         using var scope = _provider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<NiuroDbContext>();
         await db.Database.EnsureCreatedAsync();
@@ -149,9 +149,9 @@ public class OutboxProcessorTests : IAsyncLifetime
     {
         _externalHandler.ResponseStatus = HttpStatusCode.Created;
 
-        await SeedEventAsync(OutboxStatus.Sent);    // No debe reprocesarse
-        await SeedEventAsync(OutboxStatus.Failed);  // No debe reprocesarse
-        var pending = await SeedEventAsync();       // El único candidato
+        await SeedEventAsync(OutboxStatus.Sent);    // Must not be reprocessed
+        await SeedEventAsync(OutboxStatus.Failed);  // Must not be reprocessed
+        var pending = await SeedEventAsync();       // The only candidate
         var processor = BuildProcessor();
 
         var processed = await processor.ProcessPendingEventsAsync(CancellationToken.None);
@@ -162,7 +162,7 @@ public class OutboxProcessorTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Stub de HttpMessageHandler que responde con un status configurable y captura la petición.
+    /// HttpMessageHandler stub that responds with a configurable status and captures the request.
     /// </summary>
     internal sealed class ConfigurableHandler : HttpMessageHandler
     {

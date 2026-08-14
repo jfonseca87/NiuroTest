@@ -1,7 +1,7 @@
 namespace Niuro.Core.Application.DTOs;
 
 /// <summary>
-/// DTO de entrada para solicitar un préstamo.
+/// Input DTO for requesting a loan.
 /// </summary>
 public class LoanApplicationRequest
 {
@@ -14,7 +14,7 @@ public class LoanApplicationRequest
 }
 
 /// <summary>
-/// Dirección del solicitante.
+/// Applicant's address.
 /// </summary>
 public class AddressDto
 {

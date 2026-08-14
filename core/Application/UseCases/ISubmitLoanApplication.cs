@@ -5,13 +5,13 @@ using Niuro.Core.Domain.Entities;
 namespace Niuro.Core.Application.UseCases;
 
 /// <summary>
-/// Caso de uso: procesar una solicitud de préstamo aprobada y persistirla de forma transaccional.
-/// Abstracción para permitir testear el controller sin acoplar a la implementación (DIP).
+/// Use case: process an approved loan application and persist it transactionally.
+/// Abstraction to allow testing the controller without coupling to the implementation (DIP).
 /// </summary>
 public interface ISubmitLoanApplication
 {
     /// <summary>
-    /// Persiste customer + application + outbox event en una transacción atómica.
+    /// Persists customer + application + outbox event in an atomic transaction.
     /// </summary>
     Task<Result<LoanApplication>> ExecuteAsync(LoanApplicationRequest request, CancellationToken ct = default);
 }
