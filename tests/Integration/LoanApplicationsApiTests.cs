@@ -125,9 +125,10 @@ public class LoanApplicationsApiTests : IDisposable
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
-        // FluentValidation usa PropertyName PascalCase como clave del diccionario de errores.
-        Assert.True(problem.GetProperty("errors").TryGetProperty("Ssn", out _));
-        Assert.True(problem.GetProperty("errors").TryGetProperty("FirstName", out _));
+        // Las claves se normalizan a camelCase para que el frontend las mapee (getFieldError).
+        Assert.True(problem.GetProperty("errors").TryGetProperty("ssn", out _));
+        Assert.True(problem.GetProperty("errors").TryGetProperty("firstName", out _));
+        Assert.True(problem.GetProperty("errors").TryGetProperty("address.state", out _));
     }
 
     [Fact]

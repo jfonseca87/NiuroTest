@@ -40,7 +40,7 @@ public class LoanApplicationsController : ControllerBase
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors
-                .GroupBy(e => e.PropertyName)
+                .GroupBy(e => ToCamelCase(e.PropertyName))
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
 
             return UnprocessableEntity(new ValidationProblemDetails(errors)
@@ -82,5 +82,23 @@ public class LoanApplicationsController : ControllerBase
             request.FirstName, request.LastName, submitResult.Value.Id);
 
         return Ok(LoanDecision.Approved(submitResult.Value.Id.ToString()));
+    }
+
+    /// <summary>
+    /// Convierte un PropertyName de FluentValidation (PascalCase, ej. "Address.State")
+    /// a camelCase por segmento (ej. "address.state"), consistente con los campos del frontend.
+    /// </summary>
+    private static string ToCamelCase(string propertyName)
+    {
+        var segments = propertyName.Split('.');
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            if (segment.Length > 0)
+            {
+                segments[i] = char.ToLowerInvariant(segment[0]) + segment[1..];
+            }
+        }
+        return string.Join('.', segments);
     }
 }
