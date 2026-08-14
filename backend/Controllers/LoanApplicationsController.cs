@@ -13,14 +13,14 @@ namespace Niuro.Api.Controllers;
 public class LoanApplicationsController : ControllerBase
 {
     private readonly IValidator<LoanApplicationRequest> _validator;
-    private readonly RuleEngine _ruleEngine;
-    private readonly SubmitLoanApplication _submitLoanApplication;
+    private readonly IRuleEngine _ruleEngine;
+    private readonly ISubmitLoanApplication _submitLoanApplication;
     private readonly ILogger<LoanApplicationsController> _logger;
 
     public LoanApplicationsController(
         IValidator<LoanApplicationRequest> validator,
-        RuleEngine ruleEngine,
-        SubmitLoanApplication submitLoanApplication,
+        IRuleEngine ruleEngine,
+        ISubmitLoanApplication submitLoanApplication,
         ILogger<LoanApplicationsController> logger)
     {
         _validator = validator;
@@ -43,7 +43,7 @@ public class LoanApplicationsController : ControllerBase
                 .GroupBy(e => e.PropertyName)
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
 
-            return ValidationProblem(new ValidationProblemDetails(errors)
+            return UnprocessableEntity(new ValidationProblemDetails(errors)
             {
                 Title = "Validation Failed",
                 Status = StatusCodes.Status422UnprocessableEntity

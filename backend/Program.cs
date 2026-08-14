@@ -8,6 +8,7 @@ using Niuro.Core.Application.DTOs;
 using Niuro.Core.Application.Validators;
 using Niuro.Core.Domain.Rules;
 using Niuro.Core.Domain.Queries;
+using Niuro.Core.Application.UseCases;
 
 // Logging de arranque: el API es un entry point con derechos de logging (el mock no loguea aquí).
 // El worker compartirá el mismo archivo rolling; la property "Service" diferencia qué proceso escribió.
@@ -52,10 +53,10 @@ try
     builder.Services.AddScoped<ICustomerQuery, CustomerQuery>();
     builder.Services.AddScoped<IDenialRule, StateNyRule>();
     builder.Services.AddScoped<IDenialRule, BlacklistedSsnRule>();
-    builder.Services.AddScoped<RuleEngine>();
+    builder.Services.AddScoped<IRuleEngine, RuleEngine>();
 
     // Caso de uso (UC-11): persistencia transaccional.
-    builder.Services.AddScoped<Niuro.Core.Application.UseCases.SubmitLoanApplication>();
+    builder.Services.AddScoped<ISubmitLoanApplication, SubmitLoanApplication>();
 
     var app = builder.Build();
 

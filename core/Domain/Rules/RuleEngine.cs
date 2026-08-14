@@ -6,7 +6,7 @@ namespace Niuro.Core.Domain.Rules;
 /// Motor de reglas de denegación. Evalúa todas las reglas registradas;
 /// la primera que aplica retorna Denied. Si ninguna aplica → Approved.
 /// </summary>
-public sealed class RuleEngine
+public sealed class RuleEngine : IRuleEngine
 {
     private readonly IEnumerable<IDenialRule> _rules;
 

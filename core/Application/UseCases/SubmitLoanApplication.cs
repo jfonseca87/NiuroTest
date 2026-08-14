@@ -17,16 +17,16 @@ namespace Niuro.Core.Application.UseCases;
 /// 4. Si existe → actualiza Customer + Application + OutboxEvent (Update)
 /// 5. Todo en una transacción explícita (BeginTransaction): si cualquier paso falla, rollback total.
 /// </summary>
-public sealed class SubmitLoanApplication
+public sealed class SubmitLoanApplication : ISubmitLoanApplication
 {
     private readonly NiuroDbContext _dbContext;
     private readonly ICustomerQuery _customerQuery;
-    private readonly RuleEngine _ruleEngine;
+    private readonly IRuleEngine _ruleEngine;
 
     public SubmitLoanApplication(
         NiuroDbContext dbContext,
         ICustomerQuery customerQuery,
-        RuleEngine ruleEngine)
+        IRuleEngine ruleEngine)
     {
         _dbContext = dbContext;
         _customerQuery = customerQuery;
