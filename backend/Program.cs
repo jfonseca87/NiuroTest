@@ -9,6 +9,7 @@ using Niuro.Core.Application.Validators;
 using Niuro.Core.Domain.Rules;
 using Niuro.Core.Domain.Queries;
 using Niuro.Core.Application.UseCases;
+using Niuro.Api.Endpoints;
 
 // Logging de arranque: el API es un entry point con derechos de logging (el mock no loguea aquí).
 // El worker compartirá el mismo archivo rolling; la property "Service" diferencia qué proceso escribió.
@@ -31,9 +32,11 @@ try
     builder.Host.UseSerilog();
 
     // Add services to the container.
-    builder.Services.AddControllers();
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
+    // Se registran los servicios MVC porque WebApplicationFactory los requiere para configurar
+    // el host en los tests de integración; no se mapea ningún controller (la API es minimal).
+    builder.Services.AddControllers();
 
     builder.Services.AddCors(options => options.AddPolicy("TestPolicy", policy =>
             policy.AllowAnyOrigin()
@@ -83,7 +86,8 @@ try
 
     app.UseAuthorization();
 
-    app.MapControllers();
+    // Minimal APIs: los endpoints viven en Endpoints/ y se registran aquí en una línea.
+    app.MapLoanApplicationEndpoints();
 
     app.Run();
 }

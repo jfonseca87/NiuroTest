@@ -1,10 +1,11 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Niuro.Api.Controllers;
+using Niuro.Api.Endpoints;
 using Niuro.Core.Application.DTOs;
 using Niuro.Core.Application.Results;
 using Niuro.Core.Application.Responses;
@@ -12,22 +13,20 @@ using Niuro.Core.Application.UseCases;
 using Niuro.Core.Domain.Entities;
 using Niuro.Core.Domain.Rules;
 
-namespace Niuro.Tests.Controllers;
+namespace Niuro.Tests.Endpoints;
 
-public class LoanApplicationsControllerTests
+public class LoanApplicationEndpointsTests
 {
     private readonly Mock<IValidator<LoanApplicationRequest>> _validator = new();
     private readonly Mock<IRuleEngine> _ruleEngine = new();
     private readonly Mock<ISubmitLoanApplication> _submitLoanApplication = new();
-    private readonly LoanApplicationsController _controller;
+    private readonly ILoggerFactory _loggerFactory;
 
-    public LoanApplicationsControllerTests()
+    public LoanApplicationEndpointsTests()
     {
-        _controller = new LoanApplicationsController(
-            _validator.Object,
-            _ruleEngine.Object,
-            _submitLoanApplication.Object,
-            Mock.Of<ILogger<LoanApplicationsController>>());
+        var loggerFactory = new Mock<ILoggerFactory>();
+        loggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(Mock.Of<ILogger>());
+        _loggerFactory = loggerFactory.Object;
     }
 
     private static LoanApplicationRequest ValidRequest() => new()
@@ -64,16 +63,33 @@ public class LoanApplicationsControllerTests
             .ReturnsAsync(new ValidationResult(failures));
     }
 
+    private static Task<IResult> Invoke(
+        Mock<IValidator<LoanApplicationRequest>> validator,
+        Mock<IRuleEngine> ruleEngine,
+        Mock<ISubmitLoanApplication> submit,
+        ILoggerFactory loggerFactory,
+        LoanApplicationRequest? request = null)
+        => LoanApplicationEndpoints.Submit(
+            request ?? ValidRequest(),
+            validator.Object,
+            ruleEngine.Object,
+            submit.Object,
+            loggerFactory,
+            CancellationToken.None);
+
+    private static int StatusOf(IResult result)
+        => result is IStatusCodeHttpResult status ? status.StatusCode!.Value : throw new Exception("No status");
+
     [Fact]
-    public async Task Submit_WhenValidationFails_ReturnsUnprocessableEntity()
+    public async Task Submit_WhenValidationFails_ReturnsUnprocessableEntityWithCamelCaseKeys()
     {
         SetupInvalidValidation(_validator);
 
-        var result = await _controller.Submit(ValidRequest());
+        var result = await Invoke(_validator, _ruleEngine, _submitLoanApplication, _loggerFactory);
 
-        var objectResult = Assert.IsAssignableFrom<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
-        Assert.IsType<ValidationProblemDetails>(objectResult.Value);
+        var problem = Assert.IsType<UnprocessableEntity<ValidationProblemDetails>>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, StatusOf(result));
+        Assert.True(problem.Value!.Errors.ContainsKey("firstName"));
     }
 
     [Fact]
@@ -84,13 +100,12 @@ public class LoanApplicationsControllerTests
             .Setup(r => r.EvaluateAsync(It.IsAny<LoanCandidate>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure("STATE_NY"));
 
-        var result = await _controller.Submit(ValidRequest());
+        var result = await Invoke(_validator, _ruleEngine, _submitLoanApplication, _loggerFactory);
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var decision = Assert.IsType<LoanDecision>(okResult.Value);
-        Assert.Equal("denied", decision.Status);
-        Assert.Equal("STATE_NY", decision.Reason);
-        Assert.Null(decision.ApplicationId);
+        Assert.Equal(StatusCodes.Status200OK, StatusOf(result));
+        var ok = Assert.IsType<Ok<LoanDecision>>(result);
+        Assert.Equal("denied", ok.Value!.Status);
+        Assert.Equal("STATE_NY", ok.Value.Reason);
     }
 
     [Fact]
@@ -106,13 +121,12 @@ public class LoanApplicationsControllerTests
             .Setup(s => s.ExecuteAsync(It.IsAny<LoanApplicationRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success(new LoanApplication { Id = applicationId }));
 
-        var result = await _controller.Submit(ValidRequest());
+        var result = await Invoke(_validator, _ruleEngine, _submitLoanApplication, _loggerFactory);
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var decision = Assert.IsType<LoanDecision>(okResult.Value);
-        Assert.Equal("approved", decision.Status);
-        Assert.Equal(applicationId.ToString(), decision.ApplicationId);
-        Assert.Null(decision.Reason);
+        Assert.Equal(StatusCodes.Status200OK, StatusOf(result));
+        var ok = Assert.IsType<Ok<LoanDecision>>(result);
+        Assert.Equal("approved", ok.Value!.Status);
+        Assert.Equal(applicationId.ToString(), ok.Value.ApplicationId);
     }
 
     [Fact]
@@ -126,10 +140,10 @@ public class LoanApplicationsControllerTests
             .Setup(s => s.ExecuteAsync(It.IsAny<LoanApplicationRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure<LoanApplication>("boom"));
 
-        var result = await _controller.Submit(ValidRequest());
+        var result = await Invoke(_validator, _ruleEngine, _submitLoanApplication, _loggerFactory);
 
-        var objectResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
-        Assert.IsType<ProblemDetails>(objectResult.Value);
+        var problem = Assert.IsType<ProblemHttpResult>(result);
+        Assert.Equal(StatusCodes.Status500InternalServerError, problem.StatusCode);
+        Assert.Equal("Internal Server Error", problem.ProblemDetails.Title);
     }
 }

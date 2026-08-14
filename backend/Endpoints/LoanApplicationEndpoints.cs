@@ -2,40 +2,40 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Niuro.Core.Application.DTOs;
 using Niuro.Core.Application.Responses;
-using Niuro.Core.Application.Results;
 using Niuro.Core.Application.UseCases;
 using Niuro.Core.Domain.Rules;
 
-namespace Niuro.Api.Controllers;
+namespace Niuro.Api.Endpoints;
 
-[ApiController]
-[Route("api/loan-applications")]
-public class LoanApplicationsController : ControllerBase
+/// <summary>
+/// Endpoints de minimal API para las solicitudes de préstamo.
+/// Se registran vía <see cref="MapLoanApplicationEndpoints"/>; el startup solo invoca el módulo.
+/// </summary>
+public static class LoanApplicationEndpoints
 {
-    private readonly IValidator<LoanApplicationRequest> _validator;
-    private readonly IRuleEngine _ruleEngine;
-    private readonly ISubmitLoanApplication _submitLoanApplication;
-    private readonly ILogger<LoanApplicationsController> _logger;
+    /// <summary>
+    /// Mapea los endpoints de solicitudes bajo "api/loan-applications".
+    /// </summary>
+    public static IEndpointRouteBuilder MapLoanApplicationEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("api/loan-applications");
+        group.MapPost("/", Submit);
+        return app;
+    }
 
-    public LoanApplicationsController(
+    /// <summary>
+    /// Recibe una solicitud, evalúa el rule engine y, si aprueba, persiste de forma transaccional.
+    /// </summary>
+    public static async Task<IResult> Submit(
+        LoanApplicationRequest request,
         IValidator<LoanApplicationRequest> validator,
         IRuleEngine ruleEngine,
         ISubmitLoanApplication submitLoanApplication,
-        ILogger<LoanApplicationsController> logger)
+        ILoggerFactory loggerFactory,
+        CancellationToken ct)
     {
-        _validator = validator;
-        _ruleEngine = ruleEngine;
-        _submitLoanApplication = submitLoanApplication;
-        _logger = logger;
-    }
-
-    [HttpPost]
-    [ProducesResponseType(typeof(LoanDecision), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> Submit([FromBody] LoanApplicationRequest request)
-    {
-        var validationResult = await _validator.ValidateAsync(request);
+        var logger = loggerFactory.CreateLogger("LoanApplicationEndpoints");
+        var validationResult = await validator.ValidateAsync(request, ct);
 
         if (!validationResult.IsValid)
         {
@@ -43,7 +43,7 @@ public class LoanApplicationsController : ControllerBase
                 .GroupBy(e => ToCamelCase(e.PropertyName))
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
 
-            return UnprocessableEntity(new ValidationProblemDetails(errors)
+            return Results.UnprocessableEntity(new ValidationProblemDetails(errors)
             {
                 Title = "Validation Failed",
                 Status = StatusCodes.Status422UnprocessableEntity
@@ -52,36 +52,36 @@ public class LoanApplicationsController : ControllerBase
 
         // UC-08: evaluar con el rule engine.
         var candidate = LoanCandidate.FromRequest(request);
-        var ruleResult = await _ruleEngine.EvaluateAsync(candidate);
+        var ruleResult = await ruleEngine.EvaluateAsync(candidate, ct);
 
         if (ruleResult.IsFailure)
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Loan application for {FirstName} {LastName}: denied ({Reason})",
                 request.FirstName, request.LastName, ruleResult.Error);
 
-            return Ok(LoanDecision.Denied(ruleResult.Error!));
+            return Results.Ok(LoanDecision.Denied(ruleResult.Error!));
         }
 
         // UC-11/12: persistir customer + application + outbox (transaccional)
-        var submitResult = await _submitLoanApplication.ExecuteAsync(request);
+        var submitResult = await submitLoanApplication.ExecuteAsync(request, ct);
 
         if (submitResult.IsFailure)
         {
-            _logger.LogError("Failed to submit loan application: {Error}", submitResult.Error);
-            return StatusCode(500, new ProblemDetails
+            logger.LogError("Failed to submit loan application: {Error}", submitResult.Error);
+            return Results.Problem(new ProblemDetails
             {
                 Title = "Internal Server Error",
-                Status = 500,
+                Status = StatusCodes.Status500InternalServerError,
                 Detail = "Failed to process the application. Please try again."
             });
         }
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Loan application for {FirstName} {LastName}: approved (ApplicationId={ApplicationId})",
             request.FirstName, request.LastName, submitResult.Value.Id);
 
-        return Ok(LoanDecision.Approved(submitResult.Value.Id.ToString()));
+        return Results.Ok(LoanDecision.Approved(submitResult.Value.Id.ToString()));
     }
 
     /// <summary>

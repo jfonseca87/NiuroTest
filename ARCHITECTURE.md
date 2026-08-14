@@ -22,9 +22,9 @@ core/                      # Librería compartida — clean architecture
     Queries/               # Implementaciones EF de las queries
     Migrations/            # Migraciones + seed de SSNs en blacklist
 
-backend/                   # API ASP.NET Core (composition root + controller delgado)
-  Program.cs               # DI y pipeline HTTP
-  Controllers/LoanApplicationsController.cs  # ORQUESTA, sin lógica de negocio
+backend/                   # API ASP.NET Core (composition root + minimal APIs)
+  Program.cs               # DI y pipeline HTTP (registra el módulo de endpoints en una línea)
+  Endpoints/LoanApplicationEndpoints.cs  # endpoints minimal (MapGroup) con handler delgado
 
 worker/                    # Host en background
   Infrastructure/OutboxProcessor.cs  # procesa el outbox (lógica testable)
@@ -35,7 +35,7 @@ frontend/                  # Next.js
 tests/                     # Unit + integración (Testcontainers)
 ```
 
-**Dirección de dependencias:** `Controller → Application → Domain`; `Domain` no depende de nada.
+**Dirección de dependencias:** `Endpoints → Application → Domain`; `Domain` no depende de nada.
 `Infrastructure` implementa contratos definidos en `Domain`/`Application`, así que la BD, el
 cliente HTTP o el messaging son reemplazables sin tocar las capas internas.
 
@@ -56,8 +56,8 @@ cliente HTTP o el messaging son reemplazables sin tocar las capas internas.
    El DI recolecta todas las implementaciones de `IDenialRule` y las inyecta en `RuleEngine`.
 3. **No se toca** ninguna regla existente (Open/Closed) ni el `RuleEngine`.
 
-Se exponen `IRuleEngine` y `ISubmitLoanApplication` como abstracciones para que el controller
-dependa de contratos (DIP) y sea testeable.
+Se exponen `IRuleEngine` y `ISubmitLoanApplication` como abstracciones para que el handler de
+minimal API dependa de contratos (DIP) y sea testeable.
 
 ---
 
@@ -115,8 +115,8 @@ cubre la mayoría de fallos transitorios sin añadir infraestructura.
 
 ## Tests
 
-- **Unitarios** (`tests/RuleEngine`, `tests/Validators`, `tests/Controllers`, `tests/Domain`):
-  reglas, motor, validación, mapeo HTTP del controller, normalización de SSN y update de customer.
+- **Unitarios** (`tests/RuleEngine`, `tests/Validators`, `tests/Endpoints`, `tests/Domain`):
+  reglas, motor, validación, mapeo HTTP del handler de minimal API, normalización de SSN y update de customer.
 - **Integración** (`tests/Integration`): `SubmitLoanApplication` y el endpoint HTTP completo
   contra **PostgreSQL real** (Testcontainers). Se comparte un único contenedor entre tests.
 - **Worker** (`tests/Worker`): contrato del `MockExternalClient` (stub handler) y
@@ -138,8 +138,10 @@ cubre la mayoría de fallos transitorios sin añadir infraestructura.
   distingue el proceso), sin infraestructura extra (ELK etc.).
 - **CORS**: solo se habilita una política permisiva en **Development** (app de prueba); en
   producción no se aplica ninguna política por defecto.
-- **Ruta explícita** `api/loan-applications` en el controller: el token `[controller]` no genera
-  guiones y el frontend consume ese path.
+- **Minimal APIs en vez de controllers**: los endpoints viven en `Endpoints/` y el startup los
+  registra con una sola línea (`MapLoanApplicationEndpoints`). Se mantiene `AddControllers()`
+  únicamente porque `WebApplicationFactory` lo requiere en los tests de integración (no se mapea
+  ningún controller). Ruta explícita `api/loan-applications` para que el frontend la consuma con guiones.
 - **Errores de validación en camelCase**: las claves se normalizan para que el frontend las mapee
   directamente.
 - **Auth**: no implementada (no requerida).
